@@ -53,7 +53,7 @@ export function AccountPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Đăng nhập tài khoản</h2>
           <p className="text-gray-500 text-sm mb-6">Bạn cần đăng nhập để truy cập trang thông tin tài khoản.</p>
           <p className="text-xs text-gray-400 bg-gray-50 p-3 rounded-lg border leading-relaxed mb-6 font-semibold">
-            Vui lòng nhấn nút "Đăng nhập" trên thanh điều hướng góc phải và đăng nhập nhanh bằng tài khoản thử nghiệm để tiếp tục.
+            Vuii lòng nhấn nút "Đăng nhập" trên thanh điều hướng góc phải và đăng nhập nhanh bằng tài khoản thử nghiệm để tiếp tục.
           </p>
         </div>
       </div>
@@ -141,7 +141,7 @@ export function AccountPage() {
         <h1 className="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">Tài khoản của tôi</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          
+
           {/* --- Navigation Sidebar Tabs --- */}
           <div className="md:col-span-1 space-y-4">
             <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center shadow-sm">
@@ -158,36 +158,32 @@ export function AccountPage() {
             <nav className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm space-y-1 text-sm font-semibold text-gray-600">
               <button
                 onClick={() => setActiveTab("profile")}
-                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${
-                  activeTab === "profile" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${activeTab === "profile" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
+                  }`}
               >
                 <User className="h-4 w-4" />
                 <span>Thông tin cá nhân</span>
               </button>
               <button
                 onClick={() => setActiveTab("addresses")}
-                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${
-                  activeTab === "addresses" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${activeTab === "addresses" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
+                  }`}
               >
                 <MapPin className="h-4 w-4" />
                 <span>Sổ địa chỉ ({userAddresses.length})</span>
               </button>
               <button
                 onClick={() => setActiveTab("wishlist")}
-                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${
-                  activeTab === "wishlist" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${activeTab === "wishlist" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
+                  }`}
               >
                 <Heart className="h-4 w-4" />
                 <span>Sản phẩm yêu thích ({likedProducts.length})</span>
               </button>
               <button
                 onClick={() => setActiveTab("password")}
-                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${
-                  activeTab === "password" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
-                }`}
+                className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${activeTab === "password" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"
+                  }`}
               >
                 <Lock className="h-4 w-4" />
                 <span>Đổi mật khẩu</span>
@@ -198,7 +194,7 @@ export function AccountPage() {
           {/* --- Tab Contents Panel --- */}
           <div className="md:col-span-3">
             <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-8 shadow-sm">
-              
+
               {/* Tab 1: Profile Information */}
               {activeTab === "profile" && (
                 <div className="space-y-6">
@@ -225,7 +221,7 @@ export function AccountPage() {
                           className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-sm text-gray-500 font-semibold cursor-not-allowed"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Họ và tên</label>
                         <input
@@ -327,7 +323,7 @@ export function AccountPage() {
                               {addr.detailAddress}, {addr.district}, {addr.city}
                             </p>
                           </div>
-                          
+
                           <div className="flex space-x-1 self-start">
                             <button
                               onClick={() => handleOpenAddressModal(addr)}
