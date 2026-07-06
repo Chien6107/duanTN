@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { Star, ShoppingCart, Heart, Minus, Plus, MessageSquare, Send, Calendar, ShieldAlert } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { api } from "../services/api";
 
 export function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products, wishlist, toggleWishlist, addToCart, reviews, addReview, currentUser } = useApp();
+  const { products, wishlist, toggleWishlist, addToCart, addReview, currentUser } = useApp();
 
   const product = products.find((p) => p.id === Number(id));
   const [selectedSize, setSelectedSize] = useState("");
@@ -17,6 +18,30 @@ export function ProductDetailPage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewError, setReviewError] = useState("");
+  const [productReviews, setProductReviews] = useState([]);
+
+  const fetchReviews = useCallback(async () => {
+    if (!product?.id) return;
+    try {
+      const res = await api.reviews.getByProduct(product.id);
+      if (res.status === "success" && res.data) {
+        const mapped = res.data.map((r) => ({
+          id: r.reviewId,
+          userName: r.userFullName || "Khách hàng",
+          rating: r.rating || 5,
+          date: r.reviewDate ? r.reviewDate.split("T")[0] : new Date().toISOString().split("T")[0],
+          comment: r.comment || ""
+        }));
+        setProductReviews(mapped);
+      }
+    } catch (err) {
+      console.error("Lỗi tải đánh giá sản phẩm:", err);
+    }
+  }, [product?.id]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   if (!product) {
     return (
@@ -29,8 +54,7 @@ export function ProductDetailPage() {
     );
   }
 
-  // Get reviews for this product
-  const productReviews = reviews.filter((r) => r.productId === product.id);
+  // Reviews are fetched and stored in productReviews state
 
   // Get related products (same category, different ID)
   const relatedProducts = products
@@ -68,7 +92,7 @@ export function ProductDetailPage() {
     navigate("/cart");
   };
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setReviewError("");
 
@@ -81,9 +105,14 @@ export function ProductDetailPage() {
       return;
     }
 
-    addReview(product.id, reviewRating, reviewComment);
-    setReviewComment("");
-    alert("Đánh giá sản phẩm thành công!");
+    try {
+      await addReview(product.id, reviewRating, reviewComment);
+      setReviewComment("");
+      alert("Đánh giá sản phẩm thành công!");
+      fetchReviews();
+    } catch (err) {
+      setReviewError("Có lỗi xảy ra khi gửi đánh giá!");
+    }
   };
 
   return (
