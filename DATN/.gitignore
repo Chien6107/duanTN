@@ -1,0 +1,34 @@
+# IDE / Editor folders
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# Frontend (DATN-FE)
+DATN-FE/node_modules/
+DATN-FE/dist/
+DATN-FE/.env
+DATN-FE/.env.local
+DATN-FE/.env.development.local
+DATN-FE/.env.test.local
+DATN-FE/.env.production.local
+DATN-FE/npm-debug.log*
+DATN-FE/yarn-debug.log*
+DATN-FE/yarn-error.log*
+DATN-FE/pnpm-debug.log*
+
+# Backend (DATN-BE)
+DATN-BE/target/
+DATN-BE/out/
+DATN-BE/*.log
+DATN-BE/.rebel.xml.bak
+DATN-BE/*.class
+DATN-BE/bin/
+DATN-BE/.settings/
+DATN-BE/.classpath
+DATN-BE/.project
