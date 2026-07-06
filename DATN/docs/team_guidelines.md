@@ -7,7 +7,12 @@ Tài liệu này định nghĩa quy trình làm việc nhóm, tiêu chuẩn vi�
 
 ## PHẦN 1: QUY TRÌNH LÀM VIỆC VỚI GIT (GIT WORKFLOW)
 
+> [!TIP]
+> Nhóm đã biên soạn một tài liệu hướng dẫn Git rất chi tiết tại đây: **[git_collaboration_guide.md](git_collaboration_guide.md)**.
+> Vui lòng tham khảo tài liệu này để nắm vững quy trình tạo nhánh cá nhân, viết commit, quy trình Pull Request và đặc biệt là cách sử dụng **Git Rebase** để tránh xung đột code.
+
 Để tránh xung đột code (conflict) khi nhiều người cùng làm việc trên một kho lưu trữ (repository), nhóm cần tuân thủ mô hình phân nhánh Git sau:
+
 
 ### 1.1. Sơ đồ các nhánh Git
 *   `main` (hoặc `master`): Nhánh chứa mã nguồn chạy ổn định nhất (Production-ready). Chỉ merge từ nhánh `develop` sau khi đã kiểm thử kỹ càng. Không thành viên nào được phép code trực tiếp trên nhánh này.
