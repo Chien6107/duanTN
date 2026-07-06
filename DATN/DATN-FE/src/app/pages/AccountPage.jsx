@@ -53,7 +53,7 @@ export function AccountPage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Đăng nhập tài khoản</h2>
           <p className="text-gray-500 text-sm mb-6">Bạn cần đăng nhập để truy cập trang thông tin tài khoản.</p>
           <p className="text-xs text-gray-400 bg-gray-50 p-3 rounded-lg border leading-relaxed mb-6 font-semibold">
-            Vuii lòng nhấn nút "Đăng nhập" trên thanh điều hướng góc phải và đăng nhập nhanh bằng tài khoản thử nghiệm để tiếp tục.
+            Vui lòng nhấn nút "Đăng nhập" trên thanh điều hướng góc phải và đăng nhập nhanh bằng tài khoản thử nghiệm để tiếp tục.
           </p>
         </div>
       </div>
