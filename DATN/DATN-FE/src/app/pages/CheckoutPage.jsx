@@ -112,7 +112,7 @@ export function CheckoutPage() {
     const orderData = {
       items: cart,
       userId: currentUser ? currentUser.id : null,
-      customerName: formData.fullName,
+      recipientName: formData.fullName,
       phone: formData.phone,
       address: `${formData.address}, ${formData.district}, ${formData.city}`,
       subtotal: checkoutSummary.subtotal,
@@ -150,7 +150,7 @@ export function CheckoutPage() {
     const orderData = {
       items: cart,
       userId: currentUser ? currentUser.id : null,
-      customerName: formData.fullName,
+      recipientName: formData.fullName,
       phone: formData.phone,
       address: `${formData.address}, ${formData.district}, ${formData.city}`,
       subtotal: checkoutSummary.subtotal,
