@@ -172,7 +172,7 @@ public class ProductServiceImpl implements ProductService {
 
     /** Bản rút gọn cho danh sách (không kèm variants/images chi tiết). */
     private ProductResponse convertToSummaryResponse(Product product) {
-        return buildBaseResponse(product);
+        return convertToDetailResponse(product);
     }
 
     /** Bản đầy đủ cho trang chi tiết sản phẩm. */
