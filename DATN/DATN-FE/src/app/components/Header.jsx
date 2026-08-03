@@ -1,11 +1,22 @@
-import { useState } from "react";
-import { Heart, LogIn, LogOut, Menu, Search, Shield, ShoppingBag, User, X } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Heart, LogIn, LogOut, Menu, Search, Shield, ShoppingBag, User, X, Bell } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useApp } from "../context/AppContext";
 
 export function Header() {
   const navigate = useNavigate();
-  const { cart, wishlist, currentUser, login, register, logout } = useApp();
+  const {
+    cart,
+    wishlist,
+    currentUser,
+    login,
+    register,
+    logout,
+    notifications,
+    addNotification,
+    markAllNotificationsAsRead,
+    clearNotifications
+  } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -17,6 +28,36 @@ export function Header() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualTitle, setManualTitle] = useState("");
+  const [manualContent, setManualContent] = useState("");
+  const notifRef = useRef(null);
+
+  const unreadCount = notifications ? notifications.filter((n) => !n.isRead).length : 0;
+
+  const handleManualNotifSubmit = (e) => {
+    e.preventDefault();
+    if (manualTitle.trim() && manualContent.trim()) {
+      addNotification(manualTitle, manualContent, "info");
+      setManualTitle("");
+      setManualContent("");
+      setShowManualForm(false);
+      alert("Đã gửi thông báo thủ công thành công!");
+    }
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
   const wishlistCount = wishlist.length;
@@ -132,6 +173,105 @@ export function Header() {
               {wishlistCount > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white">{wishlistCount}</span>}
             </Link>
 
+            {/* Notification Bell & Dropdown */}
+            {currentUser && (
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                  className="relative flex h-10 w-10 items-center justify-center text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950"
+                  aria-label="Thông báo"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotifDropdown && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border border-zinc-200 shadow-xl rounded-2xl overflow-hidden z-[100] animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-zinc-50">
+                      <span className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">Thông báo</span>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllNotificationsAsRead}
+                          className="text-xs text-orange-600 hover:underline font-bold"
+                        >
+                          Đọc tất cả
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-64 overflow-y-auto divide-y divide-zinc-100">
+                      {notifications.length === 0 ? (
+                        <div className="p-8 text-center text-zinc-400 text-xs font-semibold">
+                          Không có thông báo nào.
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`p-4 transition hover:bg-zinc-50 ${
+                              !notif.isRead ? "bg-orange-50/30" : ""
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="font-bold text-xs text-zinc-900">{notif.title}</span>
+                              <span className="text-[9px] text-zinc-400 font-bold shrink-0">
+                                {new Date(notif.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <p className="text-xs text-zinc-600 mt-1 leading-relaxed">{notif.content}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Manual Notification Form (Demo) */}
+                    {currentUser && (currentUser.role === 'admin' || currentUser.role === 'staff') && (
+                      <div className="p-4 bg-zinc-50 border-t border-zinc-100">
+                        <button
+                          type="button"
+                          onClick={() => setShowManualForm(!showManualForm)}
+                          className="w-full text-center text-xs font-bold text-zinc-700 hover:text-zinc-950 flex items-center justify-center space-x-1"
+                        >
+                          <span>{showManualForm ? "Ẩn gửi thông báo" : "Tạo thông báo thủ công (Test)"}</span>
+                        </button>
+                        
+                        {showManualForm && (
+                          <form onSubmit={handleManualNotifSubmit} className="mt-3 space-y-2">
+                            <input
+                              type="text"
+                              required
+                              value={manualTitle}
+                              onChange={(e) => setManualTitle(e.target.value)}
+                              placeholder="Tiêu đề thông báo..."
+                              className="w-full px-2.5 py-1.5 border border-zinc-200 bg-white rounded-lg text-xs outline-none focus:border-zinc-950"
+                            />
+                            <textarea
+                              required
+                              value={manualContent}
+                              onChange={(e) => setManualContent(e.target.value)}
+                              placeholder="Nội dung..."
+                              rows={2}
+                              className="w-full px-2.5 py-1.5 border border-zinc-200 bg-white rounded-lg text-xs outline-none focus:border-zinc-950"
+                            />
+                            <button
+                              type="submit"
+                              className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-1.5 rounded-lg text-xs transition"
+                            >
+                              Gửi thông báo
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <Link to="/cart" className="relative flex h-10 w-10 items-center justify-center text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950" aria-label="Giỏ hàng">
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-black text-white">{cartCount}</span>}
@@ -166,6 +306,61 @@ export function Header() {
           </div>
 
           <div className="flex items-center gap-2 md:hidden">
+            {currentUser && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                  className="relative flex h-10 w-10 items-center justify-center text-zinc-700"
+                  aria-label="Thông báo"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotifDropdown && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white border border-zinc-200 shadow-xl rounded-2xl overflow-hidden z-[100] animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between p-4 border-b border-zinc-100 bg-zinc-50">
+                      <span className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">Thông báo</span>
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllNotificationsAsRead}
+                          className="text-xs text-orange-600 hover:underline font-bold"
+                        >
+                          Đọc tất cả
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="max-h-60 overflow-y-auto divide-y divide-zinc-100">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-zinc-400 text-xs font-semibold">
+                          Không có thông báo nào.
+                        </div>
+                      ) : (
+                        notifications.map((notif) => (
+                          <div
+                            key={notif.id}
+                            className={`p-3 transition hover:bg-zinc-50 ${
+                              !notif.isRead ? "bg-orange-50/30" : ""
+                            }`}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="font-bold text-xs text-zinc-900">{notif.title}</span>
+                            </div>
+                            <p className="text-[11px] text-zinc-600 mt-1 leading-relaxed">{notif.content}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <Link to="/cart" className="relative flex h-10 w-10 items-center justify-center text-zinc-700" aria-label="Giỏ hàng">
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-black text-white">{cartCount}</span>}

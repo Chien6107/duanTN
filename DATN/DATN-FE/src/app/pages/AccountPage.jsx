@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Mail, Phone, MapPin, Lock, Heart, Shield, LogIn, Star, Plus, Edit, Trash2 } from "lucide-react";
+import { User, Mail, Phone, MapPin, Lock, Heart, Shield, LogIn, Star, Plus, Edit, Trash2, ShoppingBag } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { Link } from "react-router";
 
@@ -172,6 +172,13 @@ export function AccountPage() {
                 <MapPin className="h-4 w-4" />
                 <span>Sổ địa chỉ ({userAddresses.length})</span>
               </button>
+              <Link
+                to="/orders"
+                className="w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition hover:bg-gray-50 hover:text-gray-900"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span>Đơn hàng của tôi</span>
+              </Link>
               <button
                 onClick={() => setActiveTab("wishlist")}
                 className={`w-full flex items-center space-x-2.5 px-4 py-2.5 rounded-xl transition ${activeTab === "wishlist" ? "bg-orange-50 text-orange-600" : "hover:bg-gray-50 hover:text-gray-900"

@@ -150,6 +150,141 @@ export function AppProvider({ children }) {
   const [addressBook, setAddressBook] = useState([]);
   const [coupons, setCoupons] = useState([]);
   const [users, setUsers] = useState([]); // Dành cho trang Admin quản lý user
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem("foxstyle_notifications");
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 1,
+        title: "Chào mừng bạn đến với FoxStyle!",
+        content: "Cảm ơn bạn đã lựa chọn cửa hàng của chúng tôi. Hãy bắt đầu mua sắm ngay nhé!",
+        time: new Date().toISOString(),
+        isRead: false,
+        type: "success"
+      }
+    ];
+  });
+
+  // Lưu thông báo vào localStorage
+  useEffect(() => {
+    localStorage.setItem("foxstyle_notifications", JSON.stringify(notifications));
+  }, [notifications]);
+
+  // Thêm thông báo
+  const addNotification = useCallback((title, content, type = "info") => {
+    setNotifications((prev) => [
+      {
+        id: Date.now(),
+        title,
+        content,
+        time: new Date().toISOString(),
+        isRead: false,
+        type
+      },
+      ...prev
+    ]);
+  }, []);
+
+  const markAllNotificationsAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
+  const [chats, setChats] = useState(() => {
+    const saved = localStorage.getItem("foxstyle_chats");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Sync chats to localStorage
+  useEffect(() => {
+    localStorage.setItem("foxstyle_chats", JSON.stringify(chats));
+  }, [chats]);
+
+  const simulateStaffReply = useCallback((customerId, customerName) => {
+    const replies = [
+      "Chào bạn! Cảm ơn bạn đã nhắn tin cho FoxStyle. Chúng tôi sẽ phản hồi bạn trong giây lát.",
+      "Dạ FoxStyle xin chào! Bạn cần tư vấn về sản phẩm hay đơn hàng nào ạ?",
+      "Cảm ơn bạn đã liên hệ. Đội ngũ CSKH đang kiểm tra tin nhắn và hỗ trợ bạn ngay đây ạ!",
+      "Chào bạn, bạn vui lòng để lại số điện thoại hoặc mã đơn hàng nếu có để shop tiện tra cứu thông tin nhé ạ."
+    ];
+    const randomReply = replies[Math.floor(Math.random() * replies.length)];
+    
+    setTimeout(() => {
+      const replyMsg = {
+        id: "msg_reply_" + Date.now(),
+        senderId: "staff",
+        senderName: "Nhân viên hỗ trợ",
+        senderRole: "staff",
+        content: randomReply,
+        time: new Date().toISOString()
+      };
+      
+      setChats((prevChats) => {
+        const existingIdx = prevChats.findIndex((c) => c.customerId === customerId);
+        if (existingIdx > -1) {
+          const updated = [...prevChats];
+          const chat = { ...updated[existingIdx] };
+          const lastMsg = chat.messages[chat.messages.length - 1];
+          if (lastMsg && lastMsg.senderRole === "customer") {
+            chat.messages = [...chat.messages, replyMsg];
+            chat.lastMessage = randomReply;
+            chat.lastUpdated = new Date().toISOString();
+            updated[existingIdx] = chat;
+          }
+          return updated;
+        }
+        return prevChats;
+      });
+    }, 1500);
+  }, []);
+
+  const sendMessage = useCallback((customerId, customerName, senderRole, senderName, content) => {
+    const message = {
+      id: "msg_" + Date.now(),
+      senderId: senderRole === "customer" ? customerId : senderRole,
+      senderName,
+      senderRole,
+      content,
+      time: new Date().toISOString()
+    };
+
+    setChats((prevChats) => {
+      const existingIdx = prevChats.findIndex((c) => c.customerId === customerId);
+      if (existingIdx > -1) {
+        const updated = [...prevChats];
+        const chat = { ...updated[existingIdx] };
+        chat.messages = [...chat.messages, message];
+        chat.lastMessage = content;
+        chat.lastUpdated = new Date().toISOString();
+        if (senderRole === "customer") {
+          chat.unreadCount = (chat.unreadCount || 0) + 1;
+        } else {
+          chat.unreadCount = 0; // Read by staff/admin
+        }
+        updated.splice(existingIdx, 1);
+        return [chat, ...updated];
+      } else {
+        return [
+          {
+            id: "chat_" + Date.now(),
+            customerId,
+            customerName,
+            lastMessage: content,
+            lastUpdated: new Date().toISOString(),
+            unreadCount: senderRole === "customer" ? 1 : 0,
+            messages: [message]
+          },
+          ...prevChats
+        ];
+      }
+    });
+
+    if (senderRole === "customer") {
+      simulateStaffReply(customerId, customerName);
+    }
+  }, [simulateStaffReply]);
 
   // --- Load User Private Data ---
   const loadUserData = useCallback(async (currentProducts) => {
@@ -332,6 +467,11 @@ export function AppProvider({ children }) {
       try {
         await api.cart.addItem(variant.variantId, quantity);
         await loadUserData(products);
+        addNotification(
+          "Thêm vào giỏ hàng thành công",
+          `Đã thêm ${quantity} x ${product.name} (Màu: ${color}, Size: ${size}) vào giỏ hàng của bạn.`,
+          "success"
+        );
       } catch (err) {
         console.error("Lỗi thêm vào giỏ hàng:", err);
       }
@@ -349,6 +489,11 @@ export function AppProvider({ children }) {
           return [...prev, { product, size, color, quantity }];
         }
       });
+      addNotification(
+        "Thêm vào giỏ hàng thành công (Khách)",
+        `Đã thêm ${quantity} x ${product.name} (Màu: ${color}, Size: ${size}) vào giỏ hàng.`,
+        "success"
+      );
     }
   };
 
@@ -468,7 +613,7 @@ export function AppProvider({ children }) {
       });
 
       const checkoutPayload = {
-        recipientName: orderData.recipientName,
+        recipientName: orderData.recipientName || orderData.customerName,
         recipientPhone: orderData.phone,
         shippingAddress: orderData.address,
         couponCode: orderData.couponCode || null,
@@ -480,7 +625,13 @@ export function AppProvider({ children }) {
       if (res.status === "success" && res.data) {
         clearCart();
         await loadUserData(products);
-        return "DH" + res.data.orderId;
+        const orderId = "DH" + res.data.orderId;
+        addNotification(
+          "Đặt hàng thành công",
+          `Đơn hàng ${orderId} trị giá ${orderData.total.toLocaleString('vi-VN')}đ đã được đặt thành công và đang chờ duyệt.`,
+          "success"
+        );
+        return orderId;
       }
       throw new Error(res.message || "Đặt hàng thất bại!");
     } catch (err) {
@@ -494,6 +645,26 @@ export function AppProvider({ children }) {
       const res = await api.orders.updateStatus(orderIdDb, statusByte);
       if (res.status === "success") {
         await loadUserData(products);
+
+        // Tự động thông báo cập nhật trạng thái đơn hàng
+        let statusText = "Chờ duyệt";
+        let notifType = "info";
+        if (statusByte === 1 || statusByte === "processing") statusText = "Đang chuẩn bị hàng";
+        else if (statusByte === 2 || statusByte === "shipping") statusText = "Đang giao hàng";
+        else if (statusByte === 3 || statusByte === "completed") {
+          statusText = "Giao hàng thành công";
+          notifType = "success";
+        } else if (statusByte === 4 || statusByte === "cancelled") {
+          statusText = "Đã hủy";
+          notifType = "warning";
+        }
+        
+        addNotification(
+          "Cập nhật đơn hàng",
+          `Đơn hàng DH${orderIdDb} đã chuyển sang trạng thái: "${statusText}".`,
+          notifType
+        );
+
         return true;
       }
     } catch (err) {
@@ -533,6 +704,14 @@ export function AppProvider({ children }) {
         comment
       });
       await loadCatalogData();
+
+      const product = products.find(p => p.id === productId);
+      const prodName = product ? product.name : "sản phẩm";
+      addNotification(
+        "Đánh giá thành công",
+        `Cảm ơn bạn đã gửi đánh giá ${rating} sao cho sản phẩm "${prodName}".`,
+        "success"
+      );
     } catch (err) {
       console.error("Lỗi gửi đánh giá sản phẩm:", err);
     }
@@ -670,6 +849,12 @@ export function AppProvider({ children }) {
       wishlist,
       banners,
       addressBook,
+      notifications,
+      addNotification,
+      chats,
+      sendMessage,
+      markAllNotificationsAsRead,
+      clearNotifications,
       login,
       register,
       logout,

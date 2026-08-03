@@ -9,7 +9,8 @@ import {
   Tag,
   BarChart3,
   LogOut,
-  ShieldAlert
+  ShieldAlert,
+  MessageSquare
 } from "lucide-react";
 
 export function AdminLayout() {
@@ -47,6 +48,7 @@ export function AdminLayout() {
     { path: "/admin/customers", icon: Users, label: "Khách hàng" },
     { path: "/admin/promotions", icon: Tag, label: "Khuyến mãi" },
     { path: "/admin/stats", icon: BarChart3, label: "Thống kê" },
+    { path: "/admin/chats", icon: MessageSquare, label: "Chat hỗ trợ" },
   ];
 
   return (

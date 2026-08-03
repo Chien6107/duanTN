@@ -1,22 +1,72 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import { Star, ShoppingCart, Heart, Minus, Plus, MessageSquare, Send, Calendar, ShieldAlert } from "lucide-react";
 import { useApp } from "../context/AppContext";
+import { api } from "../services/api";
 
 export function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products, wishlist, toggleWishlist, addToCart, reviews, addReview, currentUser } = useApp();
+  const { products, wishlist, toggleWishlist, addToCart, addReview, currentUser, orders } = useApp();
 
   const product = products.find((p) => p.id === Number(id));
+
+  // Kiểm tra người dùng đã mua và nhận hàng thành công sản phẩm này chưa
+  const hasPurchasedAndCompleted = orders ? orders.some(
+    (order) => 
+      order.status === "completed" && 
+      order.items.some((item) => item.product.id === Number(id))
+  ) : false;
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [mainImage, setMainImage] = useState("");
+
+  // Cập nhật mainImage khi product thay đổi hoặc được nạp lần đầu
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.image);
+    }
+  }, [product]);
+
+  // Cập nhật mainImage tương ứng với màu sắc khi người dùng chọn màu
+  useEffect(() => {
+    if (selectedColor && product?.colors && product?.images && product.images.length > 0) {
+      const colorIndex = product.colors.indexOf(selectedColor);
+      if (colorIndex >= 0 && colorIndex < product.images.length) {
+        setMainImage(product.images[colorIndex].imageUrl);
+      }
+    }
+  }, [selectedColor, product]);
 
   // Review Form States
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewError, setReviewError] = useState("");
+  const [productReviews, setProductReviews] = useState([]);
+
+  const fetchReviews = useCallback(async () => {
+    if (!product?.id) return;
+    try {
+      const res = await api.reviews.getByProduct(product.id);
+      if (res.status === "success" && res.data) {
+        const mapped = res.data.map((r) => ({
+          id: r.reviewId,
+          userName: r.userFullName || "Khách hàng",
+          rating: r.rating || 5,
+          date: r.reviewDate ? r.reviewDate.split("T")[0] : new Date().toISOString().split("T")[0],
+          comment: r.comment || ""
+        }));
+        setProductReviews(mapped);
+      }
+    } catch (err) {
+      console.error("Lỗi tải đánh giá sản phẩm:", err);
+    }
+  }, [product?.id]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   if (!product) {
     return (
@@ -29,8 +79,7 @@ export function ProductDetailPage() {
     );
   }
 
-  // Get reviews for this product
-  const productReviews = reviews.filter((r) => r.productId === product.id);
+  // Reviews are fetched and stored in productReviews state
 
   // Get related products (same category, different ID)
   const relatedProducts = products
@@ -68,7 +117,7 @@ export function ProductDetailPage() {
     navigate("/cart");
   };
 
-  const handleReviewSubmit = (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     setReviewError("");
 
@@ -81,9 +130,14 @@ export function ProductDetailPage() {
       return;
     }
 
-    addReview(product.id, reviewRating, reviewComment);
-    setReviewComment("");
-    alert("Đánh giá sản phẩm thành công!");
+    try {
+      await addReview(product.id, reviewRating, reviewComment);
+      setReviewComment("");
+      alert("Đánh giá sản phẩm thành công!");
+      fetchReviews();
+    } catch (err) {
+      setReviewError("Có lỗi xảy ra khi gửi đánh giá!");
+    }
   };
 
   return (
@@ -103,15 +157,35 @@ export function ProductDetailPage() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           
           {/* Image Block */}
-          <div className="relative rounded-2xl overflow-hidden aspect-square bg-gray-50 border border-gray-100 flex items-center justify-center">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
-            {discount > 0 && (
-              <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1.5 rounded-xl text-sm font-extrabold shadow-md">
-                -{discount}% OFF
+          <div className="flex flex-col space-y-4">
+            <div className="relative rounded-2xl overflow-hidden aspect-square bg-gray-50 border border-gray-100 flex items-center justify-center">
+              <img
+                src={mainImage || product.image}
+                alt={product.name}
+                className="w-full h-full object-cover"
+              />
+              {discount > 0 && (
+                <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1.5 rounded-xl text-sm font-extrabold shadow-md">
+                  -{discount}% OFF
+                </div>
+              )}
+            </div>
+            
+            {/* Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <div className="flex space-x-2 overflow-x-auto pb-2">
+                {product.images.map((img) => (
+                  <button
+                    key={img.imageId}
+                    type="button"
+                    onClick={() => setMainImage(img.imageUrl)}
+                    className={`w-20 h-20 rounded-xl overflow-hidden border-2 transition ${
+                      (mainImage || product.image) === img.imageUrl ? "border-orange-600 shadow-sm" : "border-gray-200 hover:border-gray-400"
+                    }`}
+                  >
+                    <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -316,51 +390,58 @@ export function ProductDetailPage() {
               <h3 className="font-bold text-gray-800 mb-4 text-base">Viết đánh giá của bạn</h3>
               
               {currentUser ? (
-                <form onSubmit={handleReviewSubmit} className="space-y-4">
-                  {reviewError && (
-                    <div className="bg-red-100 text-red-700 p-2 rounded text-xs font-semibold">
-                      {reviewError}
+                hasPurchasedAndCompleted ? (
+                  <form onSubmit={handleReviewSubmit} className="space-y-4">
+                    {reviewError && (
+                      <div className="bg-red-100 text-red-700 p-2 rounded text-xs font-semibold">
+                        {reviewError}
+                      </div>
+                    )}
+
+                    {/* Rating Selector */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Đánh giá sao</label>
+                      <div className="flex items-center space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setReviewRating(star)}
+                            className="p-1 hover:scale-110 transition text-yellow-400"
+                          >
+                            <Star className={`h-6 w-6 ${star <= reviewRating ? "fill-yellow-400" : "text-gray-300"}`} />
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  )}
 
-                  {/* Rating Selector */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Đánh giá sao</label>
-                    <div className="flex items-center space-x-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setReviewRating(star)}
-                          className="p-1 hover:scale-110 transition text-yellow-400"
-                        >
-                          <Star className={`h-6 w-6 ${star <= reviewRating ? "fill-yellow-400" : "text-gray-300"}`} />
-                        </button>
-                      ))}
+                    {/* Comment Area */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Bình luận</label>
+                      <textarea
+                        required
+                        value={reviewComment}
+                        onChange={(e) => setReviewComment(e.target.value)}
+                        placeholder="Nhập cảm nhận của bạn về sản phẩm..."
+                        rows={4}
+                        className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
                     </div>
-                  </div>
 
-                  {/* Comment Area */}
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Bình luận</label>
-                    <textarea
-                      required
-                      value={reviewComment}
-                      onChange={(e) => setReviewComment(e.target.value)}
-                      placeholder="Nhập cảm nhận của bạn về sản phẩm..."
-                      rows={4}
-                      className="w-full bg-white px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    />
+                    <button
+                      type="submit"
+                      className="w-full bg-orange-600 text-white py-2 rounded-lg font-bold hover:bg-orange-700 shadow flex items-center justify-center space-x-2 text-sm transition"
+                    >
+                      <Send className="h-4 w-4" />
+                      <span>Gửi bình luận</span>
+                    </button>
+                  </form>
+                ) : (
+                  <div className="text-center py-6 text-gray-500 text-xs font-semibold">
+                    <ShieldAlert className="h-10 w-10 mx-auto text-orange-400 mb-2" />
+                    Bạn chỉ có thể đánh giá sản phẩm sau khi đã nhận hàng thành công đơn hàng chứa sản phẩm này.
                   </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-orange-600 text-white py-2 rounded-lg font-bold hover:bg-orange-700 shadow flex items-center justify-center space-x-2 text-sm transition"
-                  >
-                    <Send className="h-4 w-4" />
-                    <span>Gửi bình luận</span>
-                  </button>
-                </form>
+                )
               ) : (
                 <div className="text-center py-6 text-gray-500 text-xs font-semibold">
                   <ShieldAlert className="h-10 w-10 mx-auto text-orange-400 mb-2" />
