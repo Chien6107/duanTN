@@ -4,6 +4,7 @@ import com.foxstyle.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,7 @@ import java.util.stream.IntStream;
 
 /** Keeps only the documented sample accounts in sync without reseeding business data. */
 @Component
+@ConditionalOnProperty(name = "app.seed-demo-data", havingValue = "true")
 @RequiredArgsConstructor
 public class DemoAccountPasswordInitializer implements ApplicationRunner {
 

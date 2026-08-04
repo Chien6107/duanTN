@@ -20,6 +20,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${app.media.root:../../image}")
     private String mediaRoot;
 
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:3000}")
+    private String[] allowedOrigins;
+
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         String location = Path.of(mediaRoot).toAbsolutePath().normalize().toUri().toString();
@@ -29,7 +32,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5173", "http://localhost:3000")
+                .allowedOrigins(allowedOrigins)
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true)
