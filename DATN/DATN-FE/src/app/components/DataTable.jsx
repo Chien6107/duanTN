@@ -8,10 +8,17 @@ export function DataTable({
   searchPlaceholder = 'Tìm kiếm...',
   searchKeys = [], // keys to search by
   actions = null,  // extra header actions, e.g., "Add" button
-  itemsPerPage = 5
+  itemsPerPage = 8,
+  defaultSearchTerm = '',
+  onRowClick = null,
+  rowAriaLabel = null
 }) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(defaultSearchTerm);
   const [currentPage, setCurrentPage] = useState(1);
+
+  React.useEffect(() => {
+    setSearchTerm(defaultSearchTerm);
+  }, [defaultSearchTerm]);
 
   // 1. Filter data based on search term
   const filteredData = data.filter((row) => {
@@ -61,13 +68,13 @@ export function DataTable({
       </div>
 
       {/* Table grid */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-gray-200/80 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+            <thead className="bg-gradient-to-r from-gray-50 to-orange-50/40 border-b border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-wider">
               <tr>
                 {columns.map((col, idx) => (
-                  <th key={idx} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
+                  <th key={idx} className={`whitespace-nowrap px-6 py-4 ${col.align === 'right' ? 'text-right' : ''} ${col.headerClassName || ''}`}>
                     {col.header}
                   </th>
                 ))}
@@ -81,18 +88,39 @@ export function DataTable({
                   </td>
                 </tr>
               ) : (
-                currentItems.map((row, rowIdx) => (
-                  <tr key={rowIdx} className="hover:bg-gray-50/50 transition">
-                    {columns.map((col, colIdx) => {
-                      const value = row[col.accessor];
-                      return (
-                        <td key={colIdx} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''}`}>
-                          {col.render ? col.render(value, row) : value}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))
+                currentItems.map((row, rowIdx) => {
+                  const rowKey = row.couponId || row.id || row.productId || row.orderId || row.categoryId || row.userId || rowIdx;
+                  return (
+                    <tr
+                      key={rowKey}
+                      onClick={(event) => {
+                        if (!onRowClick || event.target.closest('button, a, input, select, textarea, [role="button"]')) return;
+                        onRowClick(row);
+                      }}
+                      onKeyDown={(event) => {
+                        if (!onRowClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+                        event.preventDefault();
+                        onRowClick(row);
+                      }}
+                      tabIndex={onRowClick ? 0 : undefined}
+                      role={onRowClick ? 'link' : undefined}
+                      aria-label={onRowClick ? (rowAriaLabel?.(row) || `Xem chi tiết ${row.name || rowKey}`) : undefined}
+                      className={`group transition duration-200 ${onRowClick
+                        ? 'cursor-pointer hover:bg-orange-50/70 focus:bg-orange-50/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-orange-500'
+                        : 'hover:bg-gray-50/50'
+                      }`}
+                    >
+                      {columns.map((col, colIdx) => {
+                        const value = row[col.accessor];
+                        return (
+                          <td key={colIdx} className={`px-6 py-4 ${col.align === 'right' ? 'text-right' : ''} ${col.cellClassName || ''}`}>
+                            {col.render ? col.render(value, row) : (value ?? '')}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

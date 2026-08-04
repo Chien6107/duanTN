@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 public interface ProductService {
 
-    /** Tìm kiếm + lọc sản phẩm đang bán, có phân trang và sắp xếp. */
+    /** Tìm kiếm và lọc sản phẩm đang bán, có phân trang và sắp xếp. */
     PageResponse<ProductResponse> getProducts(Integer categoryId, String keyword,
                                               BigDecimal minPrice, BigDecimal maxPrice,
                                               Pageable pageable);

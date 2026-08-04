@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +23,16 @@ public class BannerServiceImpl implements BannerService {
 
     @Override
     public List<BannerResponse> getActiveBanners() {
-        return bannerRepository.findByStatusOrderByPositionAsc((byte) 1)
+        List<Banner> banners = new ArrayList<>(bannerRepository.findByStatusOrderByPositionAsc((byte) 1));
+        bannerRepository.findByBannerTypeOrderByPositionAsc("MARQUEE").forEach(marquee -> {
+            boolean alreadyIncluded = banners.stream()
+                    .anyMatch(banner -> banner.getBannerId().equals(marquee.getBannerId()));
+            if (!alreadyIncluded) {
+                banners.add(marquee);
+            }
+        });
+
+        return banners
                 .stream()
                 .map(this::convertToResponse)
                 .toList();
@@ -44,6 +54,7 @@ public class BannerServiceImpl implements BannerService {
         Banner banner = Banner.builder()
                 .title(request.getTitle())
                 .imageUrl(request.getImageUrl())
+                .bannerType(request.getBannerType() != null ? request.getBannerType() : "IMAGE")
                 .linkUrl(request.getLinkUrl())
                 .position(request.getPosition() != null ? request.getPosition() : 1)
                 .status(request.getStatus() != null ? request.getStatus() : (byte) 1)
@@ -57,6 +68,7 @@ public class BannerServiceImpl implements BannerService {
         Banner banner = findBannerById(bannerId);
         banner.setTitle(request.getTitle());
         banner.setImageUrl(request.getImageUrl());
+        banner.setBannerType(request.getBannerType() != null ? request.getBannerType() : "IMAGE");
         banner.setLinkUrl(request.getLinkUrl());
         if (request.getPosition() != null) {
             banner.setPosition(request.getPosition());
@@ -83,6 +95,7 @@ public class BannerServiceImpl implements BannerService {
                 .bannerId(banner.getBannerId())
                 .title(banner.getTitle())
                 .imageUrl(banner.getImageUrl())
+                .bannerType(banner.getBannerType() != null ? banner.getBannerType() : "IMAGE")
                 .linkUrl(banner.getLinkUrl())
                 .position(banner.getPosition())
                 .status(banner.getStatus())

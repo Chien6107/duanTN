@@ -11,7 +11,7 @@ public class RegisterRequest {
     private String username;
 
     @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 6, max = 100, message = "Mật khẩu phải từ 6 đến 100 ký tự")
+    @Pattern(regexp = com.foxstyle.api.util.PasswordPolicy.REGEX, message = com.foxstyle.api.util.PasswordPolicy.MESSAGE)
     private String password;
 
     @NotBlank(message = "Họ và tên không được để trống")
@@ -22,6 +22,10 @@ public class RegisterRequest {
     @Email(message = "Email không đúng định dạng")
     private String email;
 
-    @Pattern(regexp = "^$|^(0|\\+84)\\d{8,14}$", message = "Số điện thoại không hợp lệ")
+    @NotBlank(message = "Số điện thoại không được để trống")
+    @Pattern(regexp = com.foxstyle.api.util.PhonePolicy.REGEX, message = com.foxstyle.api.util.PhonePolicy.MESSAGE)
     private String phone;
+
+    @NotBlank(message = "Mã xác thực OTP không được để trống")
+    private String otp;
 }

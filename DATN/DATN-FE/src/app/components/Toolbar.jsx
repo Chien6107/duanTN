@@ -1,14 +1,19 @@
-import React from 'react';
-import { SlidersHorizontal, Search } from 'lucide-react';
+import React, { useState } from "react";
+import { SlidersHorizontal, Search, ChevronDown, ChevronUp, RotateCcw, Tag, Award } from "lucide-react";
 
 export function Toolbar({
   searchQuery,
   onSearchChange,
   categoryFilter,
   onCategoryChange,
+  brandFilter = "",
+  onBrandChange = () => {},
+  brandsList = [],
   categories = [],
   priceFilter,
   onPriceChange,
+  maxPriceValue = "",
+  onMaxPriceChange = () => {},
   selectedColors = [],
   onColorToggle,
   selectedSizes = [],
@@ -19,144 +24,170 @@ export function Toolbar({
   colorsList = [],
   sizesList = []
 }) {
+  const [isCatOpen, setIsCatOpen] = useState(true);
+
   return (
-    <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+    <div className="bg-white p-5 rounded-3xl border border-zinc-200 shadow-xs space-y-5 text-zinc-900">
       
       {/* Header and Reset */}
-      <div className="flex items-center justify-between">
-        <h3 className="font-extrabold text-gray-900 text-lg flex items-center">
-          <SlidersHorizontal className="h-4 w-4 mr-2 text-orange-600" />
-          <span>Bộ lọc tìm kiếm</span>
+      <div className="flex items-center justify-between pb-3 border-b border-zinc-100">
+        <h3 className="font-extrabold text-zinc-900 text-sm uppercase tracking-wider flex items-center gap-2">
+          <SlidersHorizontal className="h-4 w-4 text-orange-600" />
+          <span>Bộ Lọc Sản Phẩm</span>
         </h3>
-        <button onClick={onReset} className="text-xs font-semibold text-orange-600 hover:text-orange-700">
-          Thiết lập lại
+        <button
+          onClick={onReset}
+          className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 bg-orange-50 px-2.5 py-1 rounded-full transition cursor-pointer"
+        >
+          <RotateCcw className="h-3 w-3" />
+          <span>Đặt lại</span>
         </button>
       </div>
 
-      {/* Search Bar */}
+      {/* Quick Search */}
       <div>
-        <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Tìm kiếm nhanh</label>
+        <label className="block text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2">Tìm kiếm nhanh</label>
         <div className="relative">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Áo, quần, chất liệu..."
-            className="w-full px-3 py-2 pl-9 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+            placeholder="Tên áo, quần, combo, thương hiệu..."
+            className="w-full px-3.5 py-2.5 pl-9 border border-zinc-250 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-zinc-50/50 text-zinc-900"
           />
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-3 h-3.5 w-3.5 text-zinc-400" />
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="border-t border-gray-100 pt-4">
-        <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Danh mục</label>
-        <div className="space-y-2">
-          <button
-            onClick={() => onCategoryChange("")}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition ${
-              !categoryFilter ? "bg-orange-50 text-orange-600" : "text-gray-600 hover:bg-gray-55/40"
-            }`}
-          >
-            Tất cả sản phẩm
-          </button>
-          {categories.map((cat) => (
+      {/* Brand Selection Filter */}
+      <div className="border-t border-zinc-100 pt-4">
+        <label className="block text-[11px] font-black uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1.5">
+          <Award className="w-3.5 h-3.5 text-orange-500" />
+          Thương hiệu đối tác
+        </label>
+        <select
+          value={brandFilter}
+          onChange={(e) => onBrandChange(e.target.value)}
+          className="w-full px-3.5 py-2.5 border border-zinc-250 rounded-xl text-xs font-bold bg-zinc-50/50 text-zinc-900 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
+        >
+          <option value="">Tất cả thương hiệu</option>
+          {brandsList.map((b, idx) => (
+            <option key={idx} value={b.name}>{b.name}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Category Filter */}
+      <div className="border-t border-zinc-100 pt-4">
+        <button
+          onClick={() => setIsCatOpen(!isCatOpen)}
+          className="w-full flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-zinc-500 mb-2.5 hover:text-zinc-900 transition"
+        >
+          <span>Danh mục sản phẩm</span>
+          {isCatOpen ? <ChevronUp className="h-4 w-4 text-zinc-400" /> : <ChevronDown className="h-4 w-4 text-zinc-400" />}
+        </button>
+
+        {isCatOpen && (
+          <div className="space-y-1 max-h-56 overflow-y-auto pr-1 transition-all duration-300">
             <button
-              key={cat.id}
-              onClick={() => onCategoryChange(cat.id)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition capitalize ${
-                categoryFilter === cat.id ? "bg-orange-50 text-orange-600" : "text-gray-600 hover:bg-gray-55/40"
+              onClick={() => onCategoryChange("")}
+              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                !categoryFilter ? "bg-orange-600 text-white shadow-xs" : "text-zinc-700 hover:bg-zinc-100"
               }`}
             >
-              {cat.name}
+              <span>Tất cả sản phẩm</span>
+              {!categoryFilter && <Tag className="h-3 w-3" />}
             </button>
-          ))}
-        </div>
+
+            <button
+              onClick={() => onCategoryChange("combo")}
+              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                categoryFilter === "combo" ? "bg-orange-600 text-white shadow-xs" : "text-orange-700 bg-orange-50/80 hover:bg-orange-100 border border-orange-200/60"
+              }`}
+            >
+              <span>Set Combo Ưu Đãi</span>
+              {categoryFilter === "combo" && <Tag className="h-3 w-3" />}
+            </button>
+            {categories.map((cat) => {
+              const isSelected = String(categoryFilter) === String(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => onCategoryChange(cat.id)}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                    isSelected ? "bg-orange-600 text-white shadow-xs" : "text-zinc-700 hover:bg-zinc-100"
+                  }`}
+                >
+                  <span>{cat.name}</span>
+                  {isSelected && <Tag className="h-3 w-3" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Price Options */}
-      <div className="border-t border-gray-100 pt-4">
-        <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Khoảng Giá</label>
-        <div className="space-y-2">
+      {/* Price Range Filter & Slider */}
+      <div className="border-t border-zinc-100 pt-4 space-y-3">
+        <label className="block text-[11px] font-black uppercase tracking-wider text-zinc-400">Khoảng giá</label>
+
+        {/* Range Slider Bar */}
+        <div className="bg-zinc-50 p-3 rounded-2xl border border-zinc-200 space-y-2">
+          <div className="flex items-center justify-between text-xs font-bold text-zinc-700">
+            <span>Tối đa:</span>
+            <span className="font-black text-orange-600">
+              {maxPriceValue ? `${Number(maxPriceValue).toLocaleString("vi-VN")}đ` : "Tất cả"}
+            </span>
+          </div>
+          <input
+            type="range"
+            min="50000"
+            max="2000000"
+            step="50000"
+            value={maxPriceValue || 2000000}
+            onChange={(e) => onMaxPriceChange && onMaxPriceChange(e.target.value)}
+            className="w-full accent-orange-600 cursor-pointer h-2 bg-zinc-200 rounded-lg"
+          />
+          <div className="flex justify-between text-[9px] font-extrabold text-zinc-400">
+            <span>50k</span>
+            <span>1tr</span>
+            <span>2tr+</span>
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
           {[
-            { id: "all", label: "Tất cả giá" },
-            { id: "under-200", label: "Dưới 200,000đ" },
-            { id: "200-500", label: "200,000đ - 500,000đ" },
-            { id: "over-500", label: "Trên 500,000đ" }
-          ].map((pOpt) => (
-            <label key={pOpt.id} className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer">
+            { id: "all", label: "Tất cả mức giá" },
+            { id: "under-300", label: "Dưới 300.000đ" },
+            { id: "300-500", label: "Từ 300.000đ - 500.000đ" },
+            { id: "above-500", label: "Trên 500.000đ" }
+          ].map((option) => (
+            <label key={option.id} className="flex items-center space-x-3 text-xs font-semibold text-zinc-700 cursor-pointer hover:text-zinc-950 transition">
               <input
                 type="radio"
-                name="price-range-component"
-                checked={priceFilter === pOpt.id}
-                onChange={() => onPriceChange(pOpt.id)}
-                className="text-orange-600 focus:ring-orange-500 h-4 w-4"
+                name="price"
+                checked={priceFilter === option.id}
+                onChange={() => onPriceChange(option.id)}
+                className="accent-orange-600 h-4 w-4"
               />
-              <span>{pOpt.label}</span>
+              <span>{option.label}</span>
             </label>
           ))}
         </div>
       </div>
 
-      {/* Colors */}
-      {colorsList.length > 0 && (
-        <div className="border-t border-gray-100 pt-4">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Màu sắc</label>
-          <div className="flex flex-wrap gap-1.5">
-            {colorsList.map((color) => {
-              const isSelected = selectedColors.includes(color);
-              return (
-                <button
-                  key={color}
-                  onClick={() => onColorToggle(color)}
-                  className={`text-xs px-2.5 py-1.5 rounded-lg border transition font-medium ${
-                    isSelected ? "bg-orange-600 border-orange-600 text-white" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  {color}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Sizes */}
-      {sizesList.length > 0 && (
-        <div className="border-t border-gray-100 pt-4">
-          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">Kích thước (Size)</label>
-          <div className="flex flex-wrap gap-1.5">
-            {sizesList.map((size) => {
-              const isSelected = selectedSizes.includes(size);
-              return (
-                <button
-                  key={size}
-                  onClick={() => onSizeToggle(size)}
-                  className={`w-9 h-9 flex items-center justify-center text-xs rounded-lg border transition font-bold ${
-                    isSelected ? "bg-orange-600 border-orange-600 text-white" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  {size}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Sale Only Toggle */}
-      <div className="border-t border-gray-100 pt-4">
-        <label className="flex items-center space-x-3 text-sm font-semibold text-red-600 cursor-pointer">
+      <div className="border-t border-zinc-100 pt-4">
+        <label className="flex items-center justify-between cursor-pointer">
+          <span className="text-xs font-extrabold uppercase tracking-wider text-red-600">Chỉ sản phẩm khuyến mãi</span>
           <input
             type="checkbox"
             checked={saleOnly}
             onChange={(e) => onSaleToggle(e.target.checked)}
-            className="text-red-500 rounded focus:ring-red-400 h-4 w-4"
+            className="accent-red-600 h-4 w-4 rounded cursor-pointer"
           />
-          <span>Chỉ sản phẩm khuyến mãi</span>
         </label>
       </div>
-
     </div>
   );
 }

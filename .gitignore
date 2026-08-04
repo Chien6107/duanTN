@@ -1,0 +1,22 @@
+# Dependencies and generated build output
+**/node_modules/
+**/node_modules.corrupt/
+**/dist/
+**/target/
+
+# Local environment and IDE settings
+**/.env
+**/.env.*
+!**/.env.example
+**/.idea/
+**/.vscode/
+
+# Runtime and diagnostic output
+*.log
+**/*.log
+debug.log
+diff_be.txt
+
+# Operating system files
+.DS_Store
+Thumbs.db

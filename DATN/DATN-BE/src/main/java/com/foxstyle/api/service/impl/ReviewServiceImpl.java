@@ -6,11 +6,13 @@ import com.foxstyle.api.dto.response.ReviewResponse;
 import com.foxstyle.api.entity.Product;
 import com.foxstyle.api.entity.Review;
 import com.foxstyle.api.entity.User;
+import com.foxstyle.api.entity.OrderStatus;
 import com.foxstyle.api.exception.BadRequestException;
 import com.foxstyle.api.exception.ResourceNotFoundException;
 import com.foxstyle.api.repository.ProductRepository;
 import com.foxstyle.api.repository.ReviewRepository;
 import com.foxstyle.api.repository.UserRepository;
+import com.foxstyle.api.repository.OrderRepository;
 import com.foxstyle.api.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,15 +20,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.text.Normalizer;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 @SuppressWarnings("null")
 public class ReviewServiceImpl implements ReviewService {
 
+    private static final Pattern BLOCKED_LANGUAGE = Pattern.compile(
+            "\\b(?:dit|djt|deo|dcm|dkm|dm|clm|vcl|duma|du ma|con cac|cai lon|loz|cac|fuck|shit|bitch|asshole)\\b");
+
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final OrderRepository orderRepository;
+
+    @Override
+    public PageResponse<ReviewResponse> getAllReviews(Pageable pageable) {
+        Page<Review> page = reviewRepository.findAll(pageable);
+        return PageResponse.of(page.map(this::convertToResponse));
+    }
 
     @Override
     public PageResponse<ReviewResponse> getReviewsByProduct(Integer productId, Pageable pageable) {
@@ -41,6 +56,11 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản: " + username));
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm có ID: " + request.getProductId()));
+        if (reviewRepository.existsByUserUserIdAndProductProductId(user.getUserId(), request.getProductId())) {
+            throw new BadRequestException("Bạn chỉ được đánh giá sản phẩm này một lần");
+        }
+        validateCommentLanguage(request.getComment());
+        validateRatingPermission(user, request);
 
         Review review = Review.builder()
                 .user(user)
@@ -62,6 +82,8 @@ public class ReviewServiceImpl implements ReviewService {
         if (!review.getUser().getUsername().equals(username)) {
             throw new BadRequestException("Bạn không có quyền chỉnh sửa đánh giá này");
         }
+        validateCommentLanguage(request.getComment());
+        validateRatingPermission(review.getUser(), request);
 
         review.setRating(request.getRating());
         review.setComment(request.getComment());
@@ -83,11 +105,49 @@ public class ReviewServiceImpl implements ReviewService {
         reviewRepository.delete(review);
     }
 
+    private void validateRatingPermission(User user, ReviewRequest request) {
+        boolean hasPurchased = orderRepository.countPurchasedProduct(
+                user.getUserId(),
+                request.getProductId(),
+                OrderStatus.DELIVERED) > 0;
+        int rating = request.getRating() == null ? 0 : request.getRating();
+
+        if (!hasPurchased && rating > 0) {
+            throw new BadRequestException("Chỉ khách hàng đã mua và nhận sản phẩm mới được chấm sao");
+        }
+        if (!hasPurchased && (request.getComment() == null || request.getComment().trim().isEmpty())) {
+            throw new BadRequestException("Khách hàng chưa mua sản phẩm chỉ được gửi bình luận có nội dung");
+        }
+        if (hasPurchased && (rating < 1 || rating > 5)) {
+            throw new BadRequestException("Khách hàng đã mua vui lòng đánh giá từ 1 đến 5 sao");
+        }
+    }
+
+    private void validateCommentLanguage(String comment) {
+        if (comment == null || comment.isBlank()) {
+            return;
+        }
+        String normalized = Normalizer.normalize(comment, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9]+", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+        if (BLOCKED_LANGUAGE.matcher(normalized).find()) {
+            throw new BadRequestException("Vui lòng sử dụng ngôn từ lịch sự khi bình luận");
+        }
+    }
+
     private ReviewResponse convertToResponse(Review review) {
         return ReviewResponse.builder()
                 .reviewId(review.getReviewId())
                 .userId(review.getUser().getUserId())
                 .userFullName(review.getUser().getFullName())
+                .username(review.getUser().getUsername())
+                .userEmail(review.getUser().getEmail())
+                .userPhone(review.getUser().getPhone())
                 .productId(review.getProduct().getProductId())
                 .productName(review.getProduct().getProductName())
                 .rating(review.getRating())

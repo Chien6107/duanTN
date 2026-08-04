@@ -20,4 +20,11 @@ public class ProductVariantRequest {
     private Integer quantity;
 
     private String sku;
+
+    @NotNull(message = "Giá biến thể không được để trống")
+    @DecimalMin(value = "0.01", message = "Giá biến thể phải lớn hơn 0")
+    private java.math.BigDecimal price;
+    private java.math.BigDecimal costPrice;
+
+    private String imageUrl;
 }

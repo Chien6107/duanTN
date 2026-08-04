@@ -7,18 +7,30 @@ export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange
 
   const getPageNumbers = () => {
     const pages = [];
-    for (let i = 1; i <= totalPages; i++) {
-      pages.push(i);
+    const maxVisiblePages = 8;
+
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+      let endPage = startPage + maxVisiblePages - 1;
+
+      if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = endPage - maxVisiblePages + 1;
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
     }
     return pages;
   };
 
   return (
-    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-6 w-full">
-      <p className="text-sm text-gray-500 font-semibold">
-        Hiển thị <span className="font-extrabold text-gray-700">{totalItems}</span> kết quả
-      </p>
-      
+    <div className="flex items-center justify-center pt-4 border-t border-gray-100 mt-6 w-full">
       <div className="flex items-center space-x-1.5 text-sm font-semibold">
         <button
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
@@ -27,7 +39,7 @@ export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange
         >
           Trước
         </button>
-        
+
         {getPageNumbers().map((page) => (
           <button
             key={page}
@@ -35,7 +47,7 @@ export function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange
             className={`w-10 h-10 flex items-center justify-center rounded-xl transition ${
               currentPage === page
                 ? "bg-gradient-to-r from-orange-500 to-pink-600 text-white shadow"
-                : "border border-gray-300 hover:bg-gray-50 text-gray-750"
+                : "border border-gray-300 hover:bg-gray-50 text-gray-700"
             }`}
           >
             {page}

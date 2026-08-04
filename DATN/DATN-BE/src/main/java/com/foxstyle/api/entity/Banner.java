@@ -20,8 +20,12 @@ public class Banner {
     @Column(name = "title", nullable = false, length = 150)
     private String title;
 
-    @Column(name = "image_url", nullable = false, length = 255)
+    @Column(name = "image_url", length = 255)
     private String imageUrl;
+
+    @Column(name = "banner_type", length = 20)
+    @Builder.Default
+    private String bannerType = "IMAGE";
 
     @Column(name = "link_url", length = 255)
     private String linkUrl;

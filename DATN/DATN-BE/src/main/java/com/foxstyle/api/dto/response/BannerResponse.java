@@ -11,6 +11,7 @@ public class BannerResponse {
     private Integer bannerId;
     private String title;
     private String imageUrl;
+    private String bannerType;
     private String linkUrl;
     private Integer position;
     private Byte status;

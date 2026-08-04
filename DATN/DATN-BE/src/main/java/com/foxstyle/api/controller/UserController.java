@@ -1,6 +1,7 @@
 package com.foxstyle.api.controller;
 
 import com.foxstyle.api.dto.request.UserRequest;
+import com.foxstyle.api.dto.request.ResetStaffPasswordRequest;
 import com.foxstyle.api.dto.response.ApiResponse;
 import com.foxstyle.api.dto.response.PageResponse;
 import com.foxstyle.api.dto.response.UserResponse;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
 public class UserController {
 
     private final UserService userService;
@@ -83,6 +84,21 @@ public class UserController {
                 .status("success")
                 .message("Cập nhật trạng thái người dùng thành công")
                 .data(updated)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/reset-password")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> resetStaffPassword(
+            @PathVariable Integer id,
+            @Valid @RequestBody ResetStaffPasswordRequest request) {
+        userService.resetStaffPassword(id, request.getCitizenId(), request.getNewPassword());
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .status("success")
+                .message("Reset mật khẩu nhân viên thành công")
+                .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.ok(response);

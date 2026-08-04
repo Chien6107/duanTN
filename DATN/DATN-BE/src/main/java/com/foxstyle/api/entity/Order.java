@@ -39,6 +39,10 @@ public class Order {
     @Builder.Default
     private BigDecimal shippingFee = BigDecimal.ZERO;
 
+    @Column(name = "tax_amount", nullable = false, precision = 12, scale = 2)
+    @Builder.Default
+    private BigDecimal taxAmount = BigDecimal.ZERO;
+
     @Column(name = "recipient_name", nullable = false, length = 100)
     private String recipientName;
 
@@ -49,8 +53,31 @@ public class Order {
     private String shippingAddress;
 
     @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.ORDINAL)
     @Builder.Default
-    private Byte status = 0; // 0-Chờ duyệt, 1-Đã duyệt, 2-Đang giao, 3-Đã giao, 4-Đã hủy
+    private OrderStatus status = OrderStatus.PENDING; // 0-Chờ xử lý, 1-Đang xử lý, 2-Đang giao, 3-Đã giao, 4-Đã hủy, 5-Hoàn hàng
+
+    @Column(name = "cancellation_reason", length = 500)
+    private String cancellationReason;
+
+    @Column(name = "return_reason", length = 500)
+    private String returnReason;
+
+    @Column(name = "warranty_redelivery", nullable = false)
+    @Builder.Default
+    private Boolean warrantyRedelivery = false;
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
+
+    @Column(name = "shipping_carrier", length = 100)
+    private String shippingCarrier;
+
+    @Column(name = "tracking_code", length = 100)
+    private String trackingCode;
+
+    @Column(name = "dispatched_at")
+    private LocalDateTime dispatchedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")

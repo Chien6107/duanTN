@@ -16,6 +16,9 @@ function figmaAssetResolver() {
 }
 
 export default defineConfig({
+  // Serve the shared media library so images/videos stay outside source code
+  // while remaining available at /image_san_pham, /image_banner, ...
+  publicDir: path.resolve(__dirname, '../../image'),
   plugins: [
     figmaAssetResolver(),
     react(),
@@ -27,4 +30,16 @@ export default defineConfig({
     },
   },
   assetsInclude: ['**/*.svg', '**/*.csv'],
+  build: {
+    target: 'esnext',
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router'],
+          icons: ['lucide-react'],
+        },
+      },
+    },
+  },
 })

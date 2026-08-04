@@ -36,7 +36,23 @@ public class User {
     @Column(name = "phone", length = 15)
     private String phone;
 
+    @Column(name = "citizen_id", length = 12)
+    private String citizenId;
+
+    @Column(name = "address", length = 500)
+    private String address;
+
     @Column(name = "status", nullable = false)
     @Builder.Default
     private Byte status = 1; // 0 - Bị khóa, 1 - Hoạt động
+
+    @Column(name = "failed_login_attempts", nullable = false)
+    @Builder.Default
+    private Integer failedLoginAttempts = 0;
+
+    @Column(name = "theme", length = 20)
+    private String theme;
+
+    @Column(name = "language", length = 10)
+    private String language;
 }

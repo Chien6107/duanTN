@@ -8,14 +8,21 @@ import com.foxstyle.api.exception.BadRequestException;
 import com.foxstyle.api.exception.ResourceNotFoundException;
 import com.foxstyle.api.repository.CouponRepository;
 import com.foxstyle.api.repository.UserCouponRepository;
+import com.foxstyle.api.repository.CartRepository;
+import com.foxstyle.api.entity.Cart;
 import com.foxstyle.api.service.CouponService;
 import lombok.RequiredArgsConstructor;
+import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+
+import com.foxstyle.api.entity.NewsletterSubscription;
+import com.foxstyle.api.repository.NewsletterSubscriptionRepository;
+import com.foxstyle.api.service.MailService;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +34,10 @@ public class CouponServiceImpl implements CouponService {
 
     private final CouponRepository couponRepository;
     private final UserCouponRepository userCouponRepository;
+    private final CartRepository cartRepository;
+    private final com.foxstyle.api.repository.OrderRepository orderRepository;
+    private final NewsletterSubscriptionRepository newsletterSubscriptionRepository;
+    private final MailService mailService;
 
     @Override
     public PageResponse<CouponResponse> getAllCoupons(Pageable pageable) {
@@ -45,6 +56,7 @@ public class CouponServiceImpl implements CouponService {
             throw new BadRequestException("Mã giảm giá đã tồn tại: " + request.getCouponCode());
         }
         validateDates(request);
+        validateDiscountValue(request);
 
         Coupon coupon = Coupon.builder()
                 .couponCode(request.getCouponCode().toUpperCase())
@@ -57,6 +69,10 @@ public class CouponServiceImpl implements CouponService {
                 .usageLimit(request.getUsageLimit() != null ? request.getUsageLimit() : 100)
                 .usedCount(0)
                 .status(request.getStatus() != null ? request.getStatus() : (byte) 1)
+                .categoryId(request.getCategoryId())
+                .applicableUserType(request.getApplicableUserType() != null ? request.getApplicableUserType() : 0)
+                .applicableScope(request.getApplicableScope() != null ? request.getApplicableScope() : 0)
+                .applicableProductIds(request.getApplicableProductIds())
                 .build();
 
         return convertToResponse(couponRepository.save(coupon));
@@ -67,6 +83,7 @@ public class CouponServiceImpl implements CouponService {
     public CouponResponse updateCoupon(Integer couponId, CouponRequest request) {
         Coupon coupon = findCouponById(couponId);
         validateDates(request);
+        validateDiscountValue(request);
 
         boolean codeChanged = !coupon.getCouponCode().equalsIgnoreCase(request.getCouponCode());
         if (codeChanged && couponRepository.existsByCouponCode(request.getCouponCode().toUpperCase())) {
@@ -88,6 +105,14 @@ public class CouponServiceImpl implements CouponService {
         if (request.getStatus() != null) {
             coupon.setStatus(request.getStatus());
         }
+        coupon.setCategoryId(request.getCategoryId());
+        if (request.getApplicableUserType() != null) {
+            coupon.setApplicableUserType(request.getApplicableUserType());
+        }
+        if (request.getApplicableScope() != null) {
+            coupon.setApplicableScope(request.getApplicableScope());
+        }
+        coupon.setApplicableProductIds(request.getApplicableProductIds());
 
         return convertToResponse(couponRepository.save(coupon));
     }
@@ -103,7 +128,10 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public BigDecimal validateAndCalculateDiscount(String couponCode, BigDecimal orderValue, Integer userId) {
-        Coupon coupon = couponRepository.findByCouponCode(couponCode.toUpperCase())
+        if (couponCode == null || couponCode.trim().isEmpty()) {
+            throw new BadRequestException("Vui lòng nhập mã giảm giá!");
+        }
+        Coupon coupon = couponRepository.findByCouponCode(couponCode.trim().toUpperCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Mã giảm giá không tồn tại: " + couponCode));
 
         validateCouponUsable(coupon, orderValue, userId);
@@ -120,6 +148,13 @@ public class CouponServiceImpl implements CouponService {
     private void validateDates(CouponRequest request) {
         if (request.getEndDate().isBefore(request.getStartDate())) {
             throw new BadRequestException("Ngày kết thúc phải sau ngày bắt đầu");
+        }
+    }
+
+    private void validateDiscountValue(CouponRequest request) {
+        if (request.getDiscountType() == DISCOUNT_TYPE_PERCENT
+                && request.getDiscountValue().compareTo(BigDecimal.valueOf(100)) >= 0) {
+            throw new BadRequestException("Mã giảm giá theo phần trăm phải nhỏ hơn 100%");
         }
     }
 
@@ -140,8 +175,43 @@ public class CouponServiceImpl implements CouponService {
                     "Đơn hàng tối thiểu %,.0fđ mới được áp dụng mã %s",
                     coupon.getMinOrderValue(), coupon.getCouponCode()));
         }
+
+        // Quy tắc 1: Mỗi mã chỉ dùng 1 lần / 1 tài khoản
         if (userId != null && userCouponRepository.existsByIdUserIdAndIdCouponId(userId, coupon.getCouponId())) {
-            throw new BadRequestException("Bạn đã sử dụng mã giảm giá này rồi");
+            throw new BadRequestException("Bạn đã sử dụng mã giảm giá này rồi trên tài khoản này.");
+        }
+
+        // Quy tắc 2: Phân loại Thành viên Mới vs Thành viên Cũ
+        if (userId != null && coupon.getApplicableUserType() != null && coupon.getApplicableUserType() > 0) {
+            long userOrderCount = orderRepository.countByUserUserId(userId);
+            if (coupon.getApplicableUserType() == 1 && userOrderCount > 0) { // NEW_MEMBER
+                throw new BadRequestException("Mã giảm giá này chỉ dành riêng cho Thành viên mới chưa từng mua hàng.");
+            }
+            if (coupon.getApplicableUserType() == 2 && userOrderCount == 0) { // EXISTING_MEMBER
+                throw new BadRequestException("Mã giảm giá này chỉ dành riêng cho Thành viên cũ đã từng mua hàng.");
+            }
+        }
+
+        // Quy tắc 3: Phạm vi áp dụng sản phẩm (Tất cả / Danh mục / Sản phẩm chọn lọc)
+        if (userId != null && coupon.getApplicableScope() != null && coupon.getApplicableScope() > 0) {
+            Optional<Cart> userCartOpt = cartRepository.findByUserUserId(userId);
+            if (userCartOpt.isPresent()) {
+                Cart cart = userCartOpt.get();
+                if (coupon.getApplicableScope() == 1 && coupon.getCategoryId() != null) { // CATEGORY
+                    boolean hasCategoryProduct = cart.getCartDetails().stream()
+                            .anyMatch(detail -> detail.getVariant().getProduct().getCategory().getCategoryId().equals(coupon.getCategoryId()));
+                    if (!hasCategoryProduct) {
+                        throw new BadRequestException("Mã giảm giá này chỉ áp dụng cho sản phẩm thuộc Danh mục được quy định.");
+                    }
+                } else if (coupon.getApplicableScope() == 2 && coupon.getApplicableProductIds() != null && !coupon.getApplicableProductIds().trim().isEmpty()) { // SPECIFIC_PRODUCTS
+                    java.util.List<String> targetProdIds = java.util.Arrays.asList(coupon.getApplicableProductIds().split(","));
+                    boolean hasSpecificProduct = cart.getCartDetails().stream()
+                            .anyMatch(detail -> targetProdIds.contains(String.valueOf(detail.getVariant().getProduct().getProductId())));
+                    if (!hasSpecificProduct) {
+                        throw new BadRequestException("Mã giảm giá này chỉ áp dụng cho các Sản phẩm chỉ định được chọn.");
+                    }
+                }
+            }
         }
     }
 
@@ -158,7 +228,6 @@ public class CouponServiceImpl implements CouponService {
         } else {
             throw new BadRequestException("Loại giảm giá không hợp lệ");
         }
-        // Không cho giảm vượt quá giá trị đơn hàng
         return discount.min(orderValue);
     }
 
@@ -175,6 +244,41 @@ public class CouponServiceImpl implements CouponService {
                 .usageLimit(coupon.getUsageLimit())
                 .usedCount(coupon.getUsedCount())
                 .status(coupon.getStatus())
+                .categoryId(coupon.getCategoryId())
+                .applicableUserType(coupon.getApplicableUserType())
+                .applicableScope(coupon.getApplicableScope())
+                .applicableProductIds(coupon.getApplicableProductIds())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void subscribeNewsletter(String email, String couponCode) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new BadRequestException("Địa chỉ email không được để trống!");
+        }
+        String cleanEmail = email.trim().toLowerCase();
+
+        if (newsletterSubscriptionRepository.existsByEmail(cleanEmail)) {
+            throw new BadRequestException("Email/Tài khoản này đã nhận mã giảm giá trước đó. Mỗi tài khoản chỉ được nhận 1 lần duy nhất!");
+        }
+
+        NewsletterSubscription subscription = NewsletterSubscription.builder()
+                .email(cleanEmail)
+                .subscribedAt(LocalDateTime.now())
+                .build();
+        newsletterSubscriptionRepository.save(subscription);
+
+        String code = (couponCode != null && !couponCode.trim().isEmpty()) ? couponCode.trim() : "FOXSTYLE50";
+        mailService.sendDiscountCouponEmail(cleanEmail, code);
+    }
+
+    @Override
+    public boolean isEmailSubscribed(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        return newsletterSubscriptionRepository.existsByEmail(email.trim().toLowerCase());
+    }
 }
+

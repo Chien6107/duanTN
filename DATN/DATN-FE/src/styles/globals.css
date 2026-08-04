@@ -1,0 +1,29 @@
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-2.5 text-sm font-semibold text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-100;
+  }
+}
+
+.flash-sale-scroll {
+  scrollbar-color: #7c2d12 rgba(255, 255, 255, 0.35);
+  scrollbar-width: auto;
+}
+
+.flash-sale-scroll::-webkit-scrollbar {
+  height: 12px;
+}
+
+.flash-sale-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 9999px;
+}
+
+.flash-sale-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #7c2d12, #facc15);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 9999px;
+}
+
+.flash-sale-scroll::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #991b1b, #f59e0b);
+}

@@ -39,4 +39,12 @@ public class CouponRequest {
     @Min(value = 0, message = "Trạng thái chỉ nhận 0 hoặc 1")
     @Max(value = 1, message = "Trạng thái chỉ nhận 0 hoặc 1")
     private Byte status;
+
+    private Integer categoryId;
+
+    private Byte applicableUserType; // 0 - Tất cả, 1 - Thành viên mới, 2 - Thành viên cũ
+
+    private Byte applicableScope; // 0 - Tất cả sản phẩm, 1 - Theo danh mục, 2 - Sản phẩm chọn lọc
+
+    private String applicableProductIds;
 }

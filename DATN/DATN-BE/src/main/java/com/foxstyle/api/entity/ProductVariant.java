@@ -35,4 +35,14 @@ public class ProductVariant {
 
     @Column(name = "sku", length = 100)
     private String sku;
+
+    @Column(name = "price", precision = 12, scale = 2)
+    private java.math.BigDecimal price;
+
+    @Column(name = "cost_price", precision = 12, scale = 2)
+    @Builder.Default
+    private java.math.BigDecimal costPrice = java.math.BigDecimal.ZERO;
+
+    @Column(name = "image_url", columnDefinition = "NVARCHAR(MAX)")
+    private String imageUrl;
 }

@@ -8,10 +8,22 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.beans.factory.annotation.Value;
+import java.nio.file.Path;
 import java.util.List;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+
+    @Value("${app.media.root:../../image}")
+    private String mediaRoot;
+
+    @Override
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
+        String location = Path.of(mediaRoot).toAbsolutePath().normalize().toUri().toString();
+        registry.addResourceHandler("/media/**").addResourceLocations(location);
+    }
 
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {

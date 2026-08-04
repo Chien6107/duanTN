@@ -1,0 +1,178 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+      xmlns:w='urn:schemas-microsoft-com:office:word' 
+      xmlns='http://www.w3.org/TR/REC-html40'>
+<head>
+  <meta charset="utf-8">
+  <title>Hướng dẫn chạy dự án DATN</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333333;
+      margin: 40px;
+    }
+    h1 {
+      color: #e65100;
+      border-bottom: 2px solid #e65100;
+      padding-bottom: 8px;
+      font-size: 26px;
+      font-weight: bold;
+    }
+    h2 {
+      color: #2c3e50;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+      font-size: 18px;
+      margin-top: 30px;
+      font-weight: bold;
+    }
+    h3 {
+      font-size: 15px;
+      color: #34495e;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background-color: #f5f5f5;
+      padding: 2px 6px;
+      font-size: 90%;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      color: #c7254e;
+    }
+    pre {
+      background-color: #f8f9fa;
+      border-left: 4px solid #e65100;
+      padding: 12px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      margin: 15px 0;
+      display: block;
+      white-space: pre-wrap;
+      border-top: 1px solid #e9ecef;
+      border-right: 1px solid #e9ecef;
+      border-bottom: 1px solid #e9ecef;
+      border-radius: 0 4px 4px 0;
+    }
+    ul, ol {
+      margin-bottom: 15px;
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .info-box {
+      background-color: #fff3e0;
+      border: 1px solid #ffe0b2;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      color: #e65100;
+      font-weight: bold;
+    }
+    .highlight {
+      font-weight: bold;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>HƯỚNG DẪN KHỞI CHẠY DỰ ÁN FASHION STORE FOXSTYLE</h1>
+  
+  <p>Tài liệu này hướng dẫn chi tiết cách giải nén, thiết lập cơ sở dữ liệu SQL Server, cấu hình kết nối và khởi chạy cả hai dự án Backend (Spring Boot) và Frontend (React Vite).</p>
+
+  <div class="info-box">
+    Lưu ý: Thực hiện đúng theo từng bước dưới đây để đảm bảo dự án hoạt động ổn định và kết nối chính xác.
+  </div>
+
+  <h2>1. GIẢI NÉN VÀ CẤU TRÚC THƯ MỤC DỰ ÁN</h2>
+  <ol>
+    <li>Giải nén file nén của dự án bằng cách click chuột phải chọn <b>Extract Here</b> hoặc <b>Extract to DATN...</b></li>
+    <li>Cấu trúc của dự án sau khi giải nén thành công bao gồm các thư mục chính:
+      <ul>
+        <li><code>DATN-BE/</code>: Mã nguồn dự án Backend (Spring Boot Maven).</li>
+        <li><code>DATN-FE/</code>: Mã nguồn dự án Frontend (React Vite TailwindCSS).</li>
+        <li><code>foxstyle_db.sql</code> hoặc <code>db.sql</code>: File mã nguồn script để import cơ sở dữ liệu.</li>
+        <li><code>docs/</code>: Chứa tài liệu đi kèm của đồ án (bao gồm file <code>HUONG_DAN.doc</code> này).</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>2. CẤU HÌNH CƠ SỞ DỮ LIỆU SQL SERVER</h2>
+  <ol>
+    <li>Khởi động <b>SQL Server Management Studio (SSMS)</b> và kết nối với SQL Server Instance của bạn.</li>
+    <li>Tạo một Database mới tên là <code>foxstyle_db</code> bằng cách chạy lệnh SQL sau:
+      <pre>CREATE DATABASE foxstyle_db;</pre>
+    </li>
+    <li>Mở file cơ sở dữ liệu <code>foxstyle_db.sql</code> (nằm ở thư mục gốc dự án) trong SSMS.</li>
+    <li>Nhấn nút <b>Execute</b> (hoặc phím <b>F5</b>) để thực thi toàn bộ script tạo bảng và chèn dữ liệu mẫu.</li>
+    <li><b>Cấu hình kết nối trong code Backend:</b>
+      <ul>
+        <li>Mở file cấu hình kết nối tại: <code>DATN-BE/src/main/resources/application.properties</code></li>
+        <li>Cập nhật thông tin đăng nhập SQL Server của bạn (nếu có thay đổi) tại các dòng sau:
+          <pre>spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=foxstyle_db;encrypt=true;trustServerCertificate=true
+spring.datasource.username=TÊN_ĐĂNG_NHẬP_CỦA_BẠN
+spring.datasource.password=MẬT_KHẨU_CỦA_BẠN</pre>
+        </li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>3. HƯỚNG DẪN CHẠY BACKEND (SPRING BOOT)</h2>
+  
+  <h3>Sử dụng IntelliJ IDEA (Phương pháp khuyên dùng):</h3>
+  <ol>
+    <li>Mở IntelliJ IDEA, chọn <b>Open</b> và dẫn tới thư mục <code>DATN-BE/</code>.</li>
+    <li>Chờ một vài phút để IntelliJ tự động tải các thư viện Maven (các dependency được khai báo trong file <code>pom.xml</code>).</li>
+    <li>Mở file chứa hàm main chạy chương trình tại: <code>src/main/java/com/foxstyle/api/ApiApplication.java</code>.</li>
+    <li>Click chuột phải vào file chọn <b>Run 'ApiApplication'</b> hoặc nhấn biểu tượng mũi tên xanh lá cây bên góc phải.</li>
+    <li>Backend sẽ chạy thành công trên cổng <b>8080</b>. Bạn có thể mở trình duyệt truy cập tài liệu Swagger tại: 
+      <pre>http://localhost:8080/swagger</pre>
+    </li>
+  </ol>
+
+  <h3>Sử dụng Command Line / Terminal:</h3>
+  <ol>
+    <li>Mở Command Prompt/Terminal và di chuyển vào thư mục <code>DATN-BE/</code>.</li>
+    <li>Chạy lệnh sau để build và khởi chạy trực tiếp:
+      <pre>mvn clean spring-boot:run</pre>
+    </li>
+  </ol>
+
+  <h2>4. HƯỚNG DẪN CHẠY FRONTEND (REACT VITE)</h2>
+  <ol>
+    <li>Mở Visual Studio Code, chọn <b>Open Folder</b> và dẫn đến thư mục <code>DATN-FE/</code>.</li>
+    <li>Mở cửa sổ Terminal trong VS Code (phím tắt <code>Ctrl + `</code>).</li>
+    <li>Chạy lệnh sau để cài đặt các gói thư viện/dependency:
+      <pre>npm install</pre>
+    </li>
+    <li>Sau khi cài đặt xong, khởi chạy dự án ở chế độ phát triển bằng lệnh:
+      <pre>npm run dev</pre>
+    </li>
+    <li>Mở trình duyệt web của bạn và truy cập địa chỉ hiển thị trên Terminal (mặc định là):
+      <pre>http://localhost:5173</pre>
+    </li>
+  </ol>
+
+  <h2>5. THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP THỬ NGHIỆM</h2>
+  <ul>
+    <li><span class="highlight">Giao diện Khách hàng</span>: Có thể đăng ký tài khoản trực tiếp ngay trên trang web hoặc sử dụng tài khoản có sẵn trong cơ sở dữ liệu mẫu.</li>
+    <li><span class="highlight">Giao diện Admin</span>: Đăng nhập tại đường dẫn <code>http://localhost:5173/admin</code> bằng tài khoản phân quyền quản trị viên cao cấp đã có sẵn trong bảng dữ liệu để truy cập giao diện quản lý.</li>
+  </ul>
+
+  <hr>
+  <p style="text-align: center; font-style: italic; color: #7f8c8d; margin-top: 40px;">Chúc bạn chạy dự án thành công và đạt kết quả cao nhất trong kỳ bảo vệ Đồ án tốt nghiệp!</p>
+
+</body>
+</html>

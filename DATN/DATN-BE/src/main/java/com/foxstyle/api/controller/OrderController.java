@@ -4,6 +4,7 @@ import com.foxstyle.api.dto.request.CheckoutRequest;
 import com.foxstyle.api.dto.response.ApiResponse;
 import com.foxstyle.api.dto.response.OrderResponse;
 import com.foxstyle.api.dto.response.PageResponse;
+import com.foxstyle.api.entity.OrderStatus;
 import com.foxstyle.api.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/v1/orders")
@@ -24,9 +26,9 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponse>>> getAllOrders(
-            @RequestParam(required = false) Byte status,
+            @RequestParam(required = false) OrderStatus status,
             Pageable pageable) {
         PageResponse<OrderResponse> orders = orderService.getAllOrders(status, pageable);
         ApiResponse<PageResponse<OrderResponse>> response = ApiResponse.<PageResponse<OrderResponse>>builder()
@@ -58,7 +60,7 @@ public class OrderController {
             Principal principal,
             Authentication authentication) {
         boolean isStaff = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_STAFF"));
         OrderResponse order = orderService.getOrderById(id, principal.getName(), isStaff);
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .status("success")
@@ -84,11 +86,13 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ResponseEntity<ApiResponse<OrderResponse>> updateOrderStatus(
             @PathVariable Integer id,
-            @RequestParam Byte status) {
-        OrderResponse updated = orderService.updateOrderStatus(id, status);
+            @RequestParam OrderStatus status,
+            @RequestParam(required = false) String reason,
+            @RequestParam(required = false, defaultValue = "false") Boolean warrantyRedelivery) {
+        OrderResponse updated = orderService.updateOrderStatus(id, status, reason, warrantyRedelivery);
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .status("success")
                 .message("Cập nhật trạng thái đơn hàng thành công")
@@ -101,8 +105,9 @@ public class OrderController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
             @PathVariable Integer id,
+            @RequestParam String reason,
             Principal principal) {
-        OrderResponse cancelled = orderService.cancelMyOrder(principal.getName(), id);
+        OrderResponse cancelled = orderService.cancelMyOrder(principal.getName(), id, reason);
         ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
                 .status("success")
                 .message("Hủy đơn hàng thành công")
@@ -110,5 +115,48 @@ public class OrderController {
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/return")
+    public ResponseEntity<ApiResponse<OrderResponse>> requestReturn(
+            @PathVariable Integer id,
+            @RequestParam String reason,
+            @RequestParam(required = false, defaultValue = "false") Boolean warrantyRedelivery,
+            Principal principal) {
+        OrderResponse returned = orderService.requestReturn(
+                principal.getName(), id, reason, warrantyRedelivery);
+        ApiResponse<OrderResponse> response = ApiResponse.<OrderResponse>builder()
+                .status("success")
+                .message("Gửi yêu cầu hoàn hàng thành công")
+                .data(returned)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/dispatch")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<OrderResponse>> dispatchToCarrier(
+            @PathVariable Integer id,
+            @RequestParam String carrier) {
+        return ResponseEntity.ok(ApiResponse.<OrderResponse>builder()
+                .status("success")
+                .message("Đã đẩy đơn sang hãng vận chuyển")
+                .data(orderService.dispatchToCarrier(id, carrier))
+                .timestamp(LocalDateTime.now())
+                .build());
+    }
+
+    @PatchMapping("/{id}/shipping-fee")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<OrderResponse>> updateShippingFee(
+            @PathVariable Integer id,
+            @RequestParam BigDecimal amount) {
+        return ResponseEntity.ok(ApiResponse.<OrderResponse>builder()
+                .status("success")
+                .message("Cập nhật phí vận chuyển thành công")
+                .data(orderService.updateShippingFee(id, amount))
+                .timestamp(LocalDateTime.now())
+                .build());
     }
 }

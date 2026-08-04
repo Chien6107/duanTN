@@ -13,4 +13,7 @@ public class ProductVariantResponse {
     private String size;
     private Integer quantity;
     private String sku;
+    private java.math.BigDecimal price;
+    private java.math.BigDecimal costPrice;
+    private String imageUrl;
 }

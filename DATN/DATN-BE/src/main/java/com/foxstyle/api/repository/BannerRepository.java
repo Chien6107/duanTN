@@ -11,6 +11,10 @@ import java.util.List;
 @Repository
 public interface BannerRepository extends JpaRepository<Banner, Integer> {
     List<Banner> findByStatusOrderByPositionAsc(Byte status);
+
+    boolean existsByBannerType(String bannerType);
+
+    List<Banner> findByBannerTypeOrderByPositionAsc(String bannerType);
     
     @Override
     @NonNull
