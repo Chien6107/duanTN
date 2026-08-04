@@ -2,6 +2,7 @@ package com.foxstyle.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "banners")
@@ -33,6 +34,16 @@ public class Banner {
     @Column(name = "position", nullable = false)
     @Builder.Default
     private Integer position = 1;
+
+    @Column(name = "display_order", nullable = false)
+    @Builder.Default
+    private Integer displayOrder = 1;
+
+    @Column(name = "start_at")
+    private LocalDateTime startAt;
+
+    @Column(name = "end_at")
+    private LocalDateTime endAt;
 
     @Column(name = "status", nullable = false)
     @Builder.Default

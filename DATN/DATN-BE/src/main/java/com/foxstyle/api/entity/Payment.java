@@ -41,4 +41,7 @@ public class Payment {
 
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
+
+    @Column(name = "provider_payload", columnDefinition = "NVARCHAR(MAX)")
+    private String providerPayload;
 }

@@ -24,4 +24,11 @@ public class NewsletterSubscription {
 
     @Column(name = "subscribed_at", nullable = false)
     private LocalDateTime subscribedAt;
+
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private Byte status = 1;
+
+    @Column(name = "unsubscribed_at")
+    private LocalDateTime unsubscribedAt;
 }

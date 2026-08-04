@@ -52,6 +52,9 @@ public class Order {
     @Column(name = "shipping_address", nullable = false, length = 255)
     private String shippingAddress;
 
+    @Column(name = "note", columnDefinition = "NVARCHAR(MAX)")
+    private String note;
+
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.ORDINAL)
     @Builder.Default

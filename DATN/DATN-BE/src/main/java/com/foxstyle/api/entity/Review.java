@@ -26,6 +26,10 @@ public class Review {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
+
     @Column(name = "rating", nullable = false)
     private Byte rating; // Từ 1 đến 5 sao
 
@@ -35,4 +39,14 @@ public class Review {
     @Column(name = "review_date", nullable = false)
     @Builder.Default
     private LocalDateTime reviewDate = LocalDateTime.now();
+
+    @Column(name = "status", nullable = false)
+    @Builder.Default
+    private Byte status = 1;
+
+    @Column(name = "admin_reply", columnDefinition = "NVARCHAR(MAX)")
+    private String adminReply;
+
+    @Column(name = "replied_at")
+    private LocalDateTime repliedAt;
 }
