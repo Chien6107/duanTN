@@ -21,8 +21,11 @@ public class MailServiceImpl implements MailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username:chien072006@gmail.com}")
+    @Value("${spring.mail.username}")
     private String senderEmail;
+
+    @Value("${MAIL_FROM_NAME}")
+    private String senderName;
 
     @Override
     @Async("taskExecutor")
@@ -31,7 +34,7 @@ public class MailServiceImpl implements MailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-            helper.setFrom(senderEmail, "FoxStyle Store");
+            helper.setFrom(senderEmail, senderName);
             helper.setTo(email);
             helper.setSubject("FoxStyle - Mã xác thực tài khoản");
 
@@ -78,7 +81,7 @@ public class MailServiceImpl implements MailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-            helper.setFrom(senderEmail, "FoxStyle Store");
+            helper.setFrom(senderEmail, senderName);
             helper.setTo(recipientEmail);
             helper.setSubject("[FoxStyle Fashion Store] Xác nhận đơn hàng thành công #" + order.getOrderId());
 
@@ -152,7 +155,7 @@ public class MailServiceImpl implements MailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
 
-            helper.setFrom(senderEmail, "FoxStyle Store");
+            helper.setFrom(senderEmail, senderName);
             helper.setTo(email.trim());
             helper.setSubject("[FoxStyle Store] Tặng bạn mã giảm giá " + code + " khi đăng ký thành viên!");
 
