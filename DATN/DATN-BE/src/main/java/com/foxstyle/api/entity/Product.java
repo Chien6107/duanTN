@@ -24,11 +24,18 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brandRef;
+
     @Column(name = "product_name", nullable = false, length = 150)
     private String productName;
 
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
+
+    @Column(name = "cost_price", precision = 12, scale = 2)
+    private BigDecimal costPrice;
 
     @Column(name = "original_price", precision = 12, scale = 2)
     private BigDecimal originalPrice;
@@ -70,6 +77,14 @@ public class Product {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private Byte status = 1; // 0 - Ngừng bán, 1 - Đang bán
+
+    @Column(name = "created_at", nullable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at", nullable = false)
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ProductVariant> variants;
