@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -40,11 +41,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
         PageableHandlerMethodArgumentResolver resolver = new PageableHandlerMethodArgumentResolver() {
             @Override
             @NonNull
+            @SuppressWarnings("null")
             public Pageable resolveArgument(
                     @NonNull org.springframework.core.MethodParameter methodParameter,
-                    org.springframework.web.method.support.ModelAndViewContainer mavContainer,
+                    @Nullable org.springframework.web.method.support.ModelAndViewContainer mavContainer,
                     @NonNull org.springframework.web.context.request.NativeWebRequest webRequest,
-                    org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
+                    @Nullable org.springframework.web.bind.support.WebDataBinderFactory binderFactory) {
                 Pageable pageable = super.resolveArgument(methodParameter, mavContainer, webRequest, binderFactory);
                 return PageableUtils.sanitize(pageable);
             }

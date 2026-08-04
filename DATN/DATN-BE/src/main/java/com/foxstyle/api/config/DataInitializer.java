@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 @Component
 @ConditionalOnProperty(name = "app.seed-demo-data", havingValue = "true")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
@@ -355,9 +356,6 @@ public class DataInitializer implements CommandLineRunner {
             "/image_san_pham/photo-1542272604-787c3835535d.jpg"
         };
 
-        int createdVariantsCount = 0;
-        int createdImagesCount = 0;
-
         for (Product product : allProducts) {
             String categoryName = (product.getCategory() != null ? product.getCategory().getCategoryName() : "").toLowerCase();
             boolean isCombo = categoryName.contains("combo") || (product.getProductName() != null && product.getProductName().contains("[SET COMBO]"));
@@ -387,7 +385,6 @@ public class DataInitializer implements CommandLineRunner {
                                 .sku("FOX-" + product.getProductId() + "-" + Integer.toHexString(color.hashCode()).toUpperCase() + "-" + size.replaceAll("\\s+", ""))
                                 .price(product.getPrice())
                                 .build());
-                        createdVariantsCount++;
                     }
                 }
             }
@@ -400,7 +397,6 @@ public class DataInitializer implements CommandLineRunner {
                         .isPrimary(true)
                         .displayOrder(1)
                         .build());
-                createdImagesCount++;
 
                 for (int i = 0; i < galleryImages.length; i++) {
                     productImageRepository.save(ProductImage.builder()
@@ -409,7 +405,6 @@ public class DataInitializer implements CommandLineRunner {
                             .isPrimary(false)
                             .displayOrder(i + 2)
                             .build());
-                    createdImagesCount++;
                 }
             }
         }

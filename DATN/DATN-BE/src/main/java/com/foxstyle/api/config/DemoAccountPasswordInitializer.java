@@ -1,6 +1,5 @@
 package com.foxstyle.api.config;
 
-import com.foxstyle.api.entity.User;
 import com.foxstyle.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;

@@ -23,6 +23,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class FinanceReportServiceImpl implements FinanceReportService {
     private final StockImportRepository stockImportRepository;
     private final ProductVariantRepository variantRepository;

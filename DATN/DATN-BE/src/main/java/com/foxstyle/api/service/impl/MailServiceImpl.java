@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class MailServiceImpl implements MailService {
 
     private final JavaMailSender mailSender;

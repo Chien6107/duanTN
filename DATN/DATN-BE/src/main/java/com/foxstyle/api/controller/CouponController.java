@@ -5,7 +5,6 @@ import com.foxstyle.api.dto.response.ApiResponse;
 import com.foxstyle.api.dto.response.CouponResponse;
 import com.foxstyle.api.dto.response.PageResponse;
 import com.foxstyle.api.entity.User;
-import com.foxstyle.api.exception.ResourceNotFoundException;
 import com.foxstyle.api.repository.UserRepository;
 import com.foxstyle.api.service.CouponService;
 import jakarta.validation.Valid;
@@ -26,7 +25,6 @@ public class CouponController {
 
     private final CouponService couponService;
     private final UserRepository userRepository;
-    private final com.foxstyle.api.service.MailService mailService;
 
     @PostMapping("/subscribe-newsletter")
     public ResponseEntity<ApiResponse<Boolean>> subscribeNewsletter(

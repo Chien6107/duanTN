@@ -13,6 +13,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class DatabaseEncodingRepair implements CommandLineRunner {
 
     @Value("${app.repair-database-encoding:true}")
