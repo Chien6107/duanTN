@@ -36,4 +36,10 @@ public class OrderDetail {
 
     @Column(name = "cost_price", precision = 12, scale = 2)
     private BigDecimal costPrice;
+
+    @Column(name = "product_name_snapshot", length = 150)
+    private String productNameSnapshot;
+
+    @Column(name = "variant_snapshot", length = 200)
+    private String variantSnapshot;
 }
