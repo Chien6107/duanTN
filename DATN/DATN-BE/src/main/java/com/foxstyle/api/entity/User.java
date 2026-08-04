@@ -57,11 +57,11 @@ public class User {
     @Column(name = "language", length = 10)
     private String language;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", columnDefinition = "DATETIME2 NOT NULL DEFAULT SYSDATETIME()")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", columnDefinition = "DATETIME2 NOT NULL DEFAULT SYSDATETIME()")
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }
