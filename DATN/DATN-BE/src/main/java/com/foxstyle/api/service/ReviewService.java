@@ -7,6 +7,8 @@ import org.springframework.data.domain.Pageable;
 
 public interface ReviewService {
 
+    PageResponse<ReviewResponse> getAllReviews(Pageable pageable);
+
     PageResponse<ReviewResponse> getReviewsByProduct(Integer productId, Pageable pageable);
 
     ReviewResponse createReview(String username, ReviewRequest request);

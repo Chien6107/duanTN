@@ -17,7 +17,7 @@ graph TD
 ```
 
 ### 1.1. Giai đoạn 1: Chuẩn bị và Thiết lập Cơ sở dữ liệu
-*   Khởi chạy kịch bản SQL tại [foxstyle_db.sql](file:///e:/PROJECT/CHIEN/fe-DATN/foxstyle_db.sql) trong SQL Server để có cấu trúc các bảng hoàn thiện.
+*   Khởi chạy kịch bản SQL tại [foxstyle_db.sql](../foxstyle_db.sql) trong SQL Server để có cấu trúc các bảng hoàn thiện.
 *   Cài đặt môi trường phát triển (JDK 17+, Node.js, IDE như IntelliJ IDEA và VS Code).
 
 ### 1.2. Giai đoạn 2: Phát triển Backend (Spring Boot Web API)
@@ -446,7 +446,7 @@ VITE_EMAILJS_PUBLIC_KEY=your_public_key
 ### 5.3. Hướng dẫn Khởi chạy dự án
 
 #### Bước 1: Khởi chạy Database
-Chạy script trong file [foxstyle_db.sql](file:///e:/PROJECT/CHIEN/fe-DATN/foxstyle_db.sql) để tạo bảng và chèn dữ liệu mẫu vào SQL Server.
+Chạy script trong file [foxstyle_db.sql](../foxstyle_db.sql) để tạo bảng và chèn dữ liệu mẫu vào SQL Server.
 
 #### Bước 2: Khởi chạy Backend (Spring Boot)
 Mở dự án bằng IntelliJ IDEA, đợi Maven tải xong các thư viện dependency, mở file chính `ApiApplication.java` (hoặc tương tự) và bấm **Run**.

@@ -14,14 +14,15 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     Page<Product> findByStatus(Byte status, Pageable pageable);
 
+    boolean existsByProductNameIgnoreCase(String productName);
+
     Page<Product> findByCategoryCategoryIdAndStatus(Integer categoryId, Byte status, Pageable pageable);
 
     Page<Product> findByProductNameContainingIgnoreCaseAndStatus(String keyword, Byte status, Pageable pageable);
 
     @Query("""
             SELECT p FROM Product p
-            WHERE p.status = 1
-              AND (:categoryId IS NULL OR p.category.categoryId = :categoryId)
+            WHERE (:categoryId IS NULL OR p.category.categoryId = :categoryId)
               AND (:keyword IS NULL OR LOWER(p.productName) LIKE LOWER(CONCAT('%', :keyword, '%')))
               AND (:minPrice IS NULL OR p.price >= :minPrice)
               AND (:maxPrice IS NULL OR p.price <= :maxPrice)

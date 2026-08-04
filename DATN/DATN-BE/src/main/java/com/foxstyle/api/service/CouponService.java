@@ -20,4 +20,10 @@ public interface CouponService {
 
     /** Khách hàng kiểm tra mã hợp lệ và số tiền được giảm cho giá trị đơn hàng. */
     BigDecimal validateAndCalculateDiscount(String couponCode, BigDecimal orderValue, Integer userId);
+
+    /** Đăng ký bản tin email nhận mã giảm giá (giới hạn 1 lần / email). */
+    void subscribeNewsletter(String email, String couponCode);
+
+    /** Kiểm tra xem email đã đăng ký nhận bản tin mã giảm giá chưa. */
+    boolean isEmailSubscribed(String email);
 }

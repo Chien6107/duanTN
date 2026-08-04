@@ -133,7 +133,9 @@ public class CartServiceImpl implements CartService {
         return CartResponse.builder()
                 .cartId(cart.getCartId())
                 .items(items)
-                .totalItems(items.size())
+                .totalItems(items.stream()
+                        .mapToInt(CartItemResponse::getQuantity)
+                        .sum())
                 .totalAmount(totalAmount)
                 .build();
     }
@@ -141,7 +143,10 @@ public class CartServiceImpl implements CartService {
     private CartItemResponse convertItem(CartDetail detail) {
         ProductVariant variant = detail.getVariant();
         Product product = variant.getProduct();
-        BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(detail.getQuantity()));
+        BigDecimal unitPrice = variant.getPrice() != null
+                ? variant.getPrice()
+                : product.getPrice();
+        BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(detail.getQuantity()));
 
         return CartItemResponse.builder()
                 .cartDetailId(detail.getCartDetailId())
@@ -151,7 +156,7 @@ public class CartServiceImpl implements CartService {
                 .imageUrl(product.getImageUrl())
                 .color(variant.getColor())
                 .size(variant.getSize())
-                .price(product.getPrice())
+                .price(unitPrice)
                 .quantity(detail.getQuantity())
                 .lineTotal(lineTotal)
                 .build();

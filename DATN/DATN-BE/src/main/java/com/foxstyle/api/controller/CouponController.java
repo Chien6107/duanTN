@@ -26,6 +26,34 @@ public class CouponController {
 
     private final CouponService couponService;
     private final UserRepository userRepository;
+    private final com.foxstyle.api.service.MailService mailService;
+
+    @PostMapping("/subscribe-newsletter")
+    public ResponseEntity<ApiResponse<Boolean>> subscribeNewsletter(
+            @RequestParam String email,
+            @RequestParam(required = false) String couponCode) {
+        couponService.subscribeNewsletter(email, couponCode);
+        ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
+                .status("success")
+                .message("Đã gửi mã giảm giá tới email thành công")
+                .data(true)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/check-newsletter")
+    public ResponseEntity<ApiResponse<Boolean>> checkNewsletterSubscription(@RequestParam String email) {
+        boolean isSubscribed = couponService.isEmailSubscribed(email);
+        ApiResponse<Boolean> response = ApiResponse.<Boolean>builder()
+                .status("success")
+                .message("Kiểm tra đăng ký bản tin thành công")
+                .data(isSubscribed)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -98,10 +126,15 @@ public class CouponController {
             Principal principal,
             @RequestParam String code,
             @RequestParam BigDecimal orderValue) {
-        User user = userRepository.findByUsername(principal.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản: " + principal.getName()));
+        Integer userId = null;
+        if (principal != null) {
+            User user = userRepository.findByUsername(principal.getName()).orElse(null);
+            if (user != null) {
+                userId = user.getUserId();
+            }
+        }
 
-        BigDecimal discount = couponService.validateAndCalculateDiscount(code, orderValue, user.getUserId());
+        BigDecimal discount = couponService.validateAndCalculateDiscount(code, orderValue, userId);
         ApiResponse<BigDecimal> response = ApiResponse.<BigDecimal>builder()
                 .status("success")
                 .message("Mã giảm giá hợp lệ")

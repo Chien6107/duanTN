@@ -5,14 +5,36 @@ import { useApp } from "../context/AppContext";
 import { ProductCard } from "../components/ProductCard";
 import { Toolbar } from "../components/Toolbar";
 import { Pagination } from "../components/Pagination";
+import { hasValidProductDiscount } from "../utils/pricing";
+
+const normalizeSearchText = (value = "") =>
+  String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .toLowerCase()
+    .trim();
+
+const normalizeBrandName = (value = "") => {
+  const normalized = normalizeSearchText(value);
+  return normalized === "nike football & wear" ? "nike wear" : normalized;
+};
 
 export function ProductsPage() {
-  const { products, categories, wishlist, toggleWishlist } = useApp();
+  const { products, categories, wishlist, toggleWishlist, currentUser, orders = [] } = useApp();
   const [searchParams, setSearchParams] = useSearchParams();
+  const vipOnly = searchParams.get("vip") === "true";
+  const userOrderCount = orders.filter(
+    (order) => String(order.userId) === String(currentUser?.id)
+  ).length;
+  const isVipCustomer = Boolean(currentUser) && userOrderCount >= 3;
 
   // Filter & Search States
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
   const [priceFilter, setPriceFilter] = useState("all");
+  const [maxPriceValue, setMaxPriceValue] = useState("");
   const [selectedColors, setSelectedColors] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [saleOnly, setSaleOnly] = useState(false);
@@ -21,16 +43,52 @@ export function ProductsPage() {
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 9;
 
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Load active brands for filter dropdown
+  const loadBrands = () => {
+    try {
+      const saved = localStorage.getItem("foxstyle_admin_brands");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter(b => Number(b.status ?? 1) !== 0);
+        }
+      }
+    } catch (e) {}
+    return [
+      { name: "FoxStyle Premium" },
+      { name: "Zara" },
+      { name: "Uniqlo" },
+      { name: "Nike Wear" }
+    ];
+  };
+  const [brandsList, setBrandsList] = useState(loadBrands);
+
+  useEffect(() => {
+    const refreshBrands = () => setBrandsList(loadBrands());
+    const handleContentUpdate = (event) => {
+      if (!event.detail?.type || event.detail.type === "brands") refreshBrands();
+    };
+    window.addEventListener("storage", refreshBrands);
+    window.addEventListener("foxstyle-content-updated", handleContentUpdate);
+    return () => {
+      window.removeEventListener("storage", refreshBrands);
+      window.removeEventListener("foxstyle-content-updated", handleContentUpdate);
+    };
+  }, []);
 
   // Sync state with URL params
   useEffect(() => {
     const cat = searchParams.get("category") || "";
     setCategoryFilter(cat);
 
-    const sale = searchParams.get("sale") === "true";
+    const brand = searchParams.get("brand") || "";
+    setBrandFilter(brand);
+
+    const sale = searchParams.get("sale") === "true" || searchParams.get("vip") === "true";
     setSaleOnly(sale);
 
     const search = searchParams.get("search") || "";
@@ -51,6 +109,15 @@ export function ProductsPage() {
     setSearchParams(params => {
       if (val) params.set("category", val);
       else params.delete("category");
+      return params;
+    });
+  };
+
+  const handleBrandChange = (val) => {
+    setBrandFilter(val);
+    setSearchParams(params => {
+      if (val) params.set("brand", val);
+      else params.delete("brand");
       return params;
     });
   };
@@ -78,7 +145,9 @@ export function ProductsPage() {
 
   const resetFilters = () => {
     setCategoryFilter("");
+    setBrandFilter("");
     setPriceFilter("all");
+    setMaxPriceValue("");
     setSelectedColors([]);
     setSelectedSizes([]);
     setSaleOnly(false);
@@ -88,40 +157,99 @@ export function ProductsPage() {
     setCurrentPage(1);
   };
 
-  // Filter products
+  // Filter products for customer catalog
   let filtered = products.filter((prod) => {
     if (searchQuery.trim()) {
-      const matchName = prod.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchDesc = prod.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchMat = prod.material.toLowerCase().includes(searchQuery.toLowerCase());
-      if (!matchName && !matchDesc && !matchMat) return false;
+      const q = normalizeSearchText(searchQuery);
+      const matchName = normalizeSearchText(prod.name).includes(q);
+      const matchDesc = normalizeSearchText(prod.description).includes(q);
+      const matchMat = normalizeSearchText(prod.material).includes(q);
+      const matchBrand = normalizeSearchText(prod.brand).includes(q);
+      const matchCategory = normalizeSearchText(prod.category).includes(q);
+      const isComboSearch = (q.includes("combo") || q.includes("set") || q.includes("bộ")) && (prod.isCombo || prod.category === "combo" || (prod.description && prod.description.includes("[COMBO:")));
+      if (!matchName && !matchDesc && !matchMat && !matchBrand && !matchCategory && !isComboSearch) return false;
     }
 
-    if (categoryFilter && prod.category !== categoryFilter) {
-      return false;
+    if (brandFilter) {
+      const selectedBrand = normalizeBrandName(brandFilter);
+      const productBrand = normalizeBrandName(prod.brand || prod.brandName);
+      if (productBrand !== selectedBrand) return false;
+    }
+
+
+    if (maxPriceValue && Number(maxPriceValue) > 0) {
+      if ((prod.price || 0) > Number(maxPriceValue)) return false;
+    }
+
+    if (categoryFilter) {
+      if (categoryFilter === "combo" || categoryFilter === "set-combo") {
+        const isCombo = prod.isCombo || prod.category === "combo" || (prod.name && (prod.name.includes("[SET COMBO]") || prod.name.toLowerCase().includes("combo"))) || (prod.description && prod.description.includes("[COMBO:"));
+        if (!isCombo) return false;
+      } else {
+        const isCombo = prod.isCombo || prod.category === "combo" || (prod.name && prod.name.includes("[SET COMBO]")) || (prod.description && prod.description.includes("[COMBO:"));
+        if (isCombo) return false;
+
+        const isNumeric = /^\d+$/.test(categoryFilter);
+        if (isNumeric) {
+          const catObj = categories.find(c => String(c.id) === String(categoryFilter));
+          if (catObj) {
+            if (catObj.name && catObj.name.toLowerCase().includes("combo")) {
+              const isCombo = prod.isCombo || prod.category === "combo" || (prod.name && (prod.name.includes("[SET COMBO]") || prod.name.toLowerCase().includes("combo"))) || (prod.description && prod.description.includes("[COMBO:"));
+              if (!isCombo) return false;
+            } else if (prod.categoryId !== undefined && prod.categoryId !== null) {
+              if (prod.categoryId !== parseInt(categoryFilter)) {
+                return false;
+              }
+            } else {
+              const nameLower = (catObj.name || "").toLowerCase();
+              let parentCode = "phu-kien";
+              if (nameLower.includes("áo khoác") || nameLower.includes("blazer") || nameLower.includes("jacket")) parentCode = "ao-khoac";
+              else if (nameLower.includes("giày") || nameLower.includes("dép") || nameLower.includes("sneaker")) parentCode = "giay";
+              else if (nameLower.includes("áo")) parentCode = "ao";
+              else if (nameLower.includes("quần")) parentCode = "quan";
+              else if (nameLower.includes("váy") || nameLower.includes("đầm") || nameLower.includes("chân váy")) parentCode = "vay";
+              
+              if (prod.category !== parentCode) {
+                return false;
+              }
+            }
+          } else {
+            return false;
+          }
+        } else {
+          if (prod.category !== categoryFilter) return false;
+        }
+      }
+    } else {
+      // Default view on /products: Exclude combo products unless user explicitly searches for them
+      const isCombo = prod.isCombo || prod.category === "combo" || (prod.name && prod.name.includes("[SET COMBO]")) || (prod.description && prod.description.includes("[COMBO:"));
+      if (isCombo && !searchQuery.trim()) return false;
     }
 
     if (priceFilter !== "all") {
-      if (priceFilter === "under-200") {
-        if (prod.price >= 200000) return false;
-      } else if (priceFilter === "200-500") {
-        if (prod.price < 200000 || prod.price > 500000) return false;
-      } else if (priceFilter === "over-500") {
-        if (prod.price <= 500000) return false;
+      const price = Number(prod.price || 0);
+      if (priceFilter === "under-300" || priceFilter === "under-200") {
+        if (price >= 300000) return false;
+      } else if (priceFilter === "300-500" || priceFilter === "200-500") {
+        if (price < 300000 || price > 500000) return false;
+      } else if (priceFilter === "above-500" || priceFilter === "over-500") {
+        if (price <= 500000) return false;
       }
     }
 
     if (selectedColors.length > 0) {
-      const hasColor = prod.colors.some(c => selectedColors.some(sc => c.toLowerCase().includes(sc.toLowerCase())));
+      const prodColors = Array.isArray(prod.colors) ? prod.colors : [];
+      const hasColor = prodColors.some(c => selectedColors.some(sc => String(c || "").toLowerCase().includes(String(sc || "").toLowerCase())));
       if (!hasColor) return false;
     }
 
     if (selectedSizes.length > 0) {
-      const hasSize = prod.sizes.some(s => selectedSizes.includes(s));
+      const prodSizes = Array.isArray(prod.sizes) ? prod.sizes : [];
+      const hasSize = prodSizes.some(s => selectedSizes.includes(String(s)));
       if (!hasSize) return false;
     }
 
-    if (saleOnly && !prod.originalPrice) {
+    if (saleOnly && !hasValidProductDiscount(prod)) {
       return false;
     }
 
@@ -129,7 +257,9 @@ export function ProductsPage() {
   });
 
   // Sort products
-  if (sortBy === "price-asc") {
+  if (sortBy === "default" || !sortBy) {
+    filtered.sort((a, b) => b.id - a.id);
+  } else if (sortBy === "price-asc") {
     filtered.sort((a, b) => a.price - b.price);
   } else if (sortBy === "price-desc") {
     filtered.sort((a, b) => b.price - a.price);
@@ -140,12 +270,14 @@ export function ProductsPage() {
   // Reset page when filtering
   useEffect(() => {
     setCurrentPage(1);
-  }, [categoryFilter, priceFilter, selectedColors, selectedSizes, saleOnly, searchQuery, sortBy]);
+  }, [categoryFilter, brandFilter, priceFilter, selectedColors, selectedSizes, saleOnly, searchQuery, sortBy]);
 
   // Paginated chunk
   const indexOfLastProduct = currentPage * itemsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentProducts = filtered.slice(indexOfFirstProduct, indexOfLastProduct);
+  const currentProducts = vipOnly && !isVipCustomer
+    ? []
+    : filtered.slice(indexOfFirstProduct, indexOfLastProduct);
 
   const colorsList = ["Trắng", "Đen", "Xám", "Be", "Xanh", "Hồng", "Đỏ", "Vàng"];
   const sizesList = ["S", "M", "L", "XL", "28", "29", "30", "31", "32", "37", "38", "39", "40", "41", "42"];
@@ -156,9 +288,14 @@ export function ProductsPage() {
     onSearchChange: handleSearchChange,
     categoryFilter,
     onCategoryChange: handleCategoryChange,
+    brandFilter,
+    onBrandChange: handleBrandChange,
+    brandsList,
     categories,
     priceFilter,
     onPriceChange: setPriceFilter,
+    maxPriceValue,
+    onMaxPriceChange: setMaxPriceValue,
     selectedColors,
     onColorToggle: toggleColor,
     selectedSizes,
@@ -171,54 +308,86 @@ export function ProductsPage() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50/60 via-zinc-50 to-zinc-100 py-8 text-zinc-950 sm:py-10">
+      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 xl:px-10">
         
         {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 pb-5 border-b border-gray-200 gap-4">
+        <div className={`mb-8 flex flex-col gap-4 rounded-3xl border p-5 shadow-sm md:flex-row md:items-center md:justify-between sm:p-7 ${categoryFilter === "combo" || categoryFilter === "set-combo" ? "border-orange-200 bg-gradient-to-r from-zinc-950 via-zinc-900 to-orange-950 text-white" : "border-zinc-200 bg-white"}`}>
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Sản Phẩm Thời Trang</h1>
-            <p className="text-gray-500 text-sm mt-1">Tìm thấy {filtered.length} sản phẩm phù hợp</p>
+            <div className="flex items-center gap-2">
+              <h1 className={`text-3xl font-extrabold tracking-tight ${categoryFilter === "combo" || categoryFilter === "set-combo" ? "text-white" : "text-zinc-900"}`}>
+                {categoryFilter === "combo" || categoryFilter === "set-combo" ? "Set Combo Phối Sẵn" : "Tất Cả Sản Phẩm"}
+              </h1>
+              {brandFilter && (
+                <span className="bg-orange-100 text-orange-700 font-bold text-xs px-3 py-1 rounded-full border border-orange-200">
+                  Thương hiệu: {brandFilter}
+                </span>
+              )}
+              {(categoryFilter === "combo" || categoryFilter === "set-combo") && (
+                <span className="bg-gradient-to-r from-orange-600 to-amber-500 text-white font-bold text-xs px-3 py-1 rounded-full shadow-xs">
+                  🎁 Set Combo Ưu Đãi
+                </span>
+              )}
+            </div>
+            <p className={`mt-2 text-xs font-semibold ${categoryFilter === "combo" || categoryFilter === "set-combo" ? "text-orange-100/80" : "text-zinc-500"}`}>
+              Tìm thấy {filtered.length} sản phẩm phù hợp
+            </p>
           </div>
           
           <div className="flex items-center space-x-3 self-end md:self-auto">
             {/* Sort Dropdown */}
-            <div className="relative flex items-center bg-white border border-gray-300 rounded-xl px-3 py-2 text-sm shadow-sm">
-              <ArrowUpDown className="h-4 w-4 text-gray-400 mr-2" />
+            <div className="relative flex items-center bg-white border border-zinc-300 rounded-xl px-3.5 py-2 text-xs font-bold shadow-xs">
+              <ArrowUpDown className="h-4 w-4 text-zinc-500 mr-2" />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent focus:outline-none font-semibold text-gray-700 cursor-pointer"
+                className="bg-transparent focus:outline-none font-semibold text-zinc-800 cursor-pointer"
               >
                 <option value="default">Mặc định (Bán chạy)</option>
                 <option value="price-asc">Giá: Thấp đến Cao</option>
                 <option value="price-desc">Giá: Cao đến Thấp</option>
-                <option value="rating-desc">Đánh giá tốt nhất</option>
+                <option value="rating-desc">Đánh giá cao nhất</option>
               </select>
             </div>
 
             {/* Mobile Filter Action Button */}
             <button
               onClick={() => setShowMobileFilters(true)}
-              className="md:hidden flex items-center bg-orange-650 text-white rounded-xl px-4 py-2.5 text-sm font-semibold shadow bg-orange-600 hover:bg-orange-700"
+              className="md:hidden flex items-center text-white rounded-xl px-4 py-2 text-xs font-extrabold uppercase shadow bg-orange-600 hover:bg-orange-700"
             >
               <Filter className="h-4 w-4 mr-2" />
-              Lọc sản phẩm
+              Bộ lọc
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {vipOnly && (
+          <div className="mb-8 rounded-3xl border border-amber-300 bg-gradient-to-r from-zinc-950 via-amber-950 to-orange-950 p-7 text-white shadow-xl">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">Đặc quyền Sale VIP</p>
+            <h2 className="mt-2 text-2xl font-black">
+              {isVipCustomer ? "Ưu đãi riêng của bạn đã được mở khóa" : "Khu vực dành riêng cho khách hàng VIP"}
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm font-medium text-amber-100/80">
+              {isVipCustomer
+                ? "Bạn được giảm thêm 5% trên giá sản phẩm khi thanh toán, ngoài ưu đãi đang hiển thị."
+                : currentUser
+                ? `Bạn đã có ${userOrderCount}/3 đơn hàng. Hoàn thành đủ 3 đơn để mở khóa Sale VIP.`
+                : "Vui lòng đăng nhập và hoàn thành tối thiểu 3 đơn hàng để mở khóa Sale VIP."}
+            </p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] xl:gap-8">
           
           {/* Desktop Filter Sidebar */}
-          <aside className="hidden md:block lg:col-span-1 space-y-6">
+          <aside className="hidden space-y-6 md:block">
             <div className="sticky top-24">
               <Toolbar {...toolbarProps} />
             </div>
           </aside>
 
           {/* Products Column */}
-          <main className="lg:col-span-3 space-y-6">
+          <main className="min-w-0 space-y-6">
             {currentProducts.length === 0 ? (
               <div className="bg-white p-16 rounded-3xl text-center border border-gray-100 shadow-sm">
                 <Grid3X3 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -228,14 +397,14 @@ export function ProductsPage() {
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-orange-700 transition"
+                  className="bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-orange-700 transition cursor-pointer"
                 >
                   Xóa tất cả bộ lọc
                 </button>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:gap-7 animate-in fade-in duration-300">
                   {currentProducts.map((product) => (
                     <ProductCard
                       key={product.id}

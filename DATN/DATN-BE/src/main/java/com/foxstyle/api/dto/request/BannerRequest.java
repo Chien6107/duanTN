@@ -13,6 +13,9 @@ public class BannerRequest {
     @NotBlank(message = "Ảnh banner không được để trống")
     private String imageUrl;
 
+    @Pattern(regexp = "IMAGE|MARQUEE")
+    private String bannerType;
+
     private String linkUrl;
 
     @Min(value = 1, message = "Vị trí hiển thị phải >= 1")

@@ -1,6 +1,11 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --bg-main: #ffffff;
+  --text-main: #000000;
+  --bg-card: #ffffff;
+  --text-muted: #6b7280;
+  --border-main: #e5e7eb;
   --font-size: 16px;
   --background: #ffffff;
   --foreground: oklch(0.145 0 0);
@@ -42,6 +47,11 @@
 }
 
 .dark {
+  --bg-main: #121212;
+  --text-main: #ffffff;
+  --bg-card: #1e1e1e;
+  --text-muted: #9ca3af;
+  --border-main: #374151;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.145 0 0);
@@ -79,6 +89,11 @@
 }
 
 @theme inline {
+  --color-bg-main: var(--bg-main);
+  --color-text-main: var(--text-main);
+  --color-bg-card: var(--bg-card);
+  --color-text-muted: var(--text-muted);
+  --color-border-main: var(--border-main);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -178,4 +193,26 @@
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+}
+
+/* Visible Custom Scrollbar for Popup Modals */
+.custom-modal-scrollbar {
+  scrollbar-width: auto;
+  scrollbar-color: #f97316 #fff7ed;
+}
+.custom-modal-scrollbar::-webkit-scrollbar {
+  width: 14px !important;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-track {
+  background: #fff7ed !important;
+  border-radius: 9999px;
+  margin: 4px 0;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-thumb {
+  background: #f97316 !important;
+  border-radius: 9999px;
+  border: 3px solid #fff7ed !important;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ea580c !important;
 }

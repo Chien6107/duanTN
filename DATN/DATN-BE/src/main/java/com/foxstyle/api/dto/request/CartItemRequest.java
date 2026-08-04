@@ -6,8 +6,12 @@ import lombok.Data;
 @Data
 public class CartItemRequest {
 
-    @NotNull(message = "Biến thể sản phẩm không được để trống")
     private Integer variantId;
+
+    private Integer comboProductId;
+    private Integer comboVariantId;
+
+    private java.util.List<Integer> componentVariantIds;
 
     @NotNull(message = "Số lượng không được để trống")
     @Min(value = 1, message = "Số lượng phải lớn hơn 0")

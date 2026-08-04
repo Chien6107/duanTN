@@ -8,15 +8,17 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 import java.io.IOException;
 
 /**
  * Trả về ApiResponse chuẩn 401 khi request chưa đăng nhập truy cập tài nguyên bảo vệ.
  */
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public void commence(HttpServletRequest request,

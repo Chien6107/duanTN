@@ -14,4 +14,9 @@ export const couponService = {
         method: "DELETE",
     }),
     validate: (code, orderValue) => request(`/coupons/validate?code=${code}&orderValue=${orderValue}`),
+    subscribeNewsletter: (email, couponCode = "FOXSTYLE50") => request(`/coupons/subscribe-newsletter?email=${encodeURIComponent(email)}&couponCode=${encodeURIComponent(couponCode)}`, {
+        method: "POST",
+    }),
+    checkNewsletter: (email) => request(`/coupons/check-newsletter?email=${encodeURIComponent(email)}`),
 };
+

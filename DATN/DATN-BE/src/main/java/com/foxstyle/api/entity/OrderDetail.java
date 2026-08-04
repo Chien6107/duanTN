@@ -33,4 +33,7 @@ public class OrderDetail {
 
     @Column(name = "price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
+
+    @Column(name = "cost_price", precision = 12, scale = 2)
+    private BigDecimal costPrice;
 }

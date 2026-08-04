@@ -1,92 +1,158 @@
 import React from "react";
 import { Link } from "react-router";
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, ArrowRight, Ban } from "lucide-react";
+import { getProductPricing } from "../utils/pricing";
+
+const categoryNames = {
+  "ao": "Áo Nam & Oversize",
+  "quan": "Quần Nam & Denim",
+  "vay": "Đầm Váy Thời Trang",
+  "ao-khoac": "Áo Khoác & Blazer",
+  "giay": "Giày & Sneaker",
+  "phu-kien": "Phụ Kiện Thời Trang"
+};
 
 export function ProductCard({ product, wishlist = [], toggleWishlist }) {
-  const isLiked = wishlist.includes(product.id);
-  const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const isLiked = wishlist.some((wId) => String(wId) === String(product.id));
+  const { originalPrice, discountPercent: discount, hasDiscount } = getProductPricing(product);
+
+  const categoryLabel = categoryNames[product.category] || product.category || "FoxStyle";
+
+  const isStoppedSelling = product.status === 0 || product.status === "0" || product.status === false || product.status === "Ngừng bán" || product.status === "INACTIVE" || product.status === "STOPPED" || product.status === "DISCONTINUED";
+  const isOutOfStock = Number(product.quantity ?? 0) <= 0;
+  const isComboProduct = product.isCombo || product.category === "combo" || (product.description && product.description.includes("[COMBO:"));
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden bg-white shadow-sm ring-1 ring-zinc-200/80 transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative aspect-[4/5] overflow-hidden bg-zinc-100">
-        <Link to={`/products/${product.id}`}>
+    <div className={`group relative flex h-full flex-col overflow-hidden bg-white rounded-3xl shadow-sm border border-zinc-200/90 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-orange-300 ${
+      isStoppedSelling ? "opacity-90 grayscale-[20%]" : ""
+    }`}>
+      
+      {/* Image Thumbnail Container - Studio Clean Frame */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-white flex items-center justify-center border-b border-zinc-100">
+        <Link to={`/products/${product.id}`} className="block w-full h-full">
           <img
             src={product.image}
             alt={product.name}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = "/image_san_pham/photo-1521572163474-6864f9cf17ab.jpg";
+            }}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-108"
           />
         </Link>
 
+        {/* Stopped Selling Watermark Overlay */}
+        {isStoppedSelling && (
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] flex flex-col items-center justify-center text-white p-3 text-center pointer-events-none">
+            <Ban className="h-8 w-8 text-red-400 mb-1" />
+            <span className="text-xs font-black uppercase tracking-wider text-red-200 bg-red-950/80 border border-red-500/40 px-3 py-1 rounded-full">
+              Ngừng bán
+            </span>
+          </div>
+        )}
+
+        {/* Wishlist Heart Button */}
         {toggleWishlist && (
           <button
-            onClick={() => toggleWishlist(product.id)}
-            className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur transition hover:scale-105 ${
-              isLiked ? "bg-red-600 text-white" : "bg-white/90 text-zinc-700 hover:text-red-600"
+            onClick={() => toggleWishlist(product)}
+            className={`absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-2xl backdrop-blur-md transition-all duration-200 shadow-sm hover:scale-110 cursor-pointer ${
+              isLiked
+                ? "bg-red-500 text-white shadow-red-500/30"
+                : "bg-white/85 text-zinc-700 hover:text-red-500 border border-zinc-200"
             }`}
             aria-label={isLiked ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
           >
-            <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
+            <Heart className={`h-4 w-4 transition-transform duration-200 ${isLiked ? "fill-current scale-110" : ""}`} />
           </button>
         )}
 
-        {discount > 0 && (
-          <div className="absolute left-3 top-3 bg-zinc-950 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-white">
-            -{discount}%
+        {/* Combo / Discount Badge */}
+        {isComboProduct ? (
+          <div className="absolute left-3.5 top-3.5 bg-gradient-to-r from-orange-600 to-amber-500 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white rounded-xl shadow-md flex items-center gap-1">
+            <span>🎁 SET COMBO</span>
+            {discount > 0 && <span>-{discount}%</span>}
+          </div>
+        ) : hasDiscount && !isStoppedSelling && (
+          <div className="absolute left-3.5 top-3.5 bg-gradient-to-r from-red-600 to-orange-500 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-white rounded-xl shadow-md">
+            -{discount}% OFF
           </div>
         )}
+
+        {/* Product detail hover overlay */}
+        <div className="absolute bottom-3.5 left-3.5 right-3.5 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 pointer-events-none">
+          <Link
+            to={`/products/${product.id}`}
+            className="pointer-events-auto w-full bg-zinc-950/85 backdrop-blur-md text-white font-extrabold text-[11px] uppercase tracking-wider py-2.5 px-3 rounded-2xl flex items-center justify-center gap-2 shadow-xl hover:bg-orange-600 transition-all duration-200"
+          >
+            <span>Xem Chi Tiết</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
-        <span className="mb-2 text-[11px] font-black uppercase tracking-[0.18em] text-zinc-500">{product.category}</span>
-        <Link to={`/products/${product.id}`} className="mb-2 block min-h-12 font-black leading-6 text-zinc-950 transition group-hover:text-amber-700">
+      {/* Product Information Body */}
+      <div className="flex flex-1 flex-col p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-black uppercase tracking-wider text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-100">
+            {categoryLabel}
+          </span>
+
+          {/* Status / Quantity Pill */}
+          {isStoppedSelling ? (
+            <span className="text-[10px] font-black uppercase tracking-wider bg-red-900 text-white px-2.5 py-0.5 rounded-full shadow-xs">
+              Ngừng bán
+            </span>
+          ) : isOutOfStock ? (
+            <span className="text-[10px] font-black uppercase tracking-wider bg-zinc-800 text-zinc-200 px-2.5 py-0.5 rounded-full">
+              Hết hàng
+            </span>
+          ) : (
+            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+              product.quantity <= 5
+                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+            }`}>
+              {product.quantity <= 5 ? `Còn ${product.quantity}` : "Sẵn kho"}
+            </span>
+          )}
+        </div>
+
+        <Link
+          to={`/products/${product.id}`}
+          className="font-extrabold text-sm leading-snug text-zinc-900 line-clamp-2 hover:text-orange-600 transition min-h-[40px]"
+        >
           {product.name}
         </Link>
 
-        <div className="mb-4 flex items-center gap-2">
-          <div className="flex items-center">
+        {/* Rating Stars */}
+        <div className="flex items-center gap-1.5">
+          <div className="flex items-center text-amber-400">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-3.5 w-3.5 flex-none ${
-                  i < Math.floor(product.rating)
-                    ? "fill-amber-400 text-amber-400"
-                    : "text-zinc-200"
+                className={`h-3.5 w-3.5 ${
+                  i < Math.floor(product.rating || 5) ? "fill-current text-amber-400" : "text-zinc-200"
                 }`}
               />
             ))}
           </div>
-          <span className="text-xs font-semibold text-zinc-400">({product.reviews})</span>
+          <span className="text-[11px] font-bold text-zinc-400">({product.reviews || 12})</span>
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-3">
+        {/* Price Section */}
+        <div className="pt-2 border-t border-zinc-100 mt-auto flex items-baseline justify-between">
           <div>
-            <span className="block text-lg font-black text-zinc-950">
-              {product.price.toLocaleString("vi-VN")}đ
+            <span className={`text-base font-black ${isStoppedSelling ? "text-zinc-400 line-through" : "text-orange-600"}`}>
+              {product.price?.toLocaleString("vi-VN")}đ
             </span>
-            {product.originalPrice && (
-              <span className="text-sm font-medium text-zinc-400 line-through">
-                {product.originalPrice.toLocaleString("vi-VN")}đ
+            {hasDiscount && !isStoppedSelling && (
+              <span className="text-xs font-bold text-zinc-400 line-through ml-2">
+                {originalPrice.toLocaleString("vi-VN")}đ
               </span>
             )}
           </div>
-
-          {product.quantity !== undefined && (
-            <span className={`shrink-0 px-2 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${
-              product.quantity <= 0
-                ? "bg-red-50 text-red-700"
-                : product.quantity <= 5
-                ? "bg-amber-50 text-amber-700"
-                : "bg-emerald-50 text-emerald-700"
-            }`}>
-              {product.quantity <= 0
-                ? "Hết hàng"
-                : product.quantity <= 5
-                ? `Còn ${product.quantity}`
-                : "Còn hàng"}
-            </span>
-          )}
         </div>
       </div>
     </div>

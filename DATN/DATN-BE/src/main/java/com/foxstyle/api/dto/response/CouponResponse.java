@@ -21,4 +21,8 @@ public class CouponResponse {
     private Integer usageLimit;
     private Integer usedCount;
     private Byte status;
+    private Integer categoryId;
+    private Byte applicableUserType;
+    private Byte applicableScope;
+    private String applicableProductIds;
 }

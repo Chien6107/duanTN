@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "products")
@@ -32,6 +33,12 @@ public class Product {
     @Column(name = "original_price", precision = 12, scale = 2)
     private BigDecimal originalPrice;
 
+    @Column(name = "flash_sale_start_at")
+    private LocalDateTime flashSaleStartAt;
+
+    @Column(name = "flash_sale_end_at")
+    private LocalDateTime flashSaleEndAt;
+
     @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
@@ -41,8 +48,24 @@ public class Product {
     @Column(name = "material", length = 100)
     private String material;
 
+    @Column(name = "brand", length = 100)
+    private String brand;
+
     @Column(name = "origin", length = 100)
     private String origin;
+
+    @Column(name = "care_instructions", columnDefinition = "NVARCHAR(MAX)")
+    private String careInstructions;
+
+    @Column(name = "fit_guide", columnDefinition = "NVARCHAR(MAX)")
+    private String fitGuide;
+
+    @Column(name = "is_combo", nullable = false, columnDefinition = "BIT DEFAULT 0")
+    @Builder.Default
+    private Boolean isCombo = false;
+
+    @Column(name = "video_url", length = 255)
+    private String videoUrl;
 
     @Column(name = "status", nullable = false)
     @Builder.Default

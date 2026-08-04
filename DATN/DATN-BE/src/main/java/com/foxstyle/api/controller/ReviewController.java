@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.time.LocalDateTime;
@@ -21,6 +22,19 @@ import java.time.LocalDateTime;
 public class ReviewController {
 
     private final ReviewService reviewService;
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getAllReviews(Pageable pageable) {
+        PageResponse<ReviewResponse> reviews = reviewService.getAllReviews(pageable);
+        ApiResponse<PageResponse<ReviewResponse>> response = ApiResponse.<PageResponse<ReviewResponse>>builder()
+                .status("success")
+                .message("Lấy toàn bộ đánh giá sản phẩm thành công")
+                .data(reviews)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/product/{productId}")
     public ResponseEntity<ApiResponse<PageResponse<ReviewResponse>>> getReviewsByProduct(
@@ -37,6 +51,7 @@ public class ReviewController {
     }
 
     @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(
             Principal principal,
             @Valid @RequestBody ReviewRequest request) {

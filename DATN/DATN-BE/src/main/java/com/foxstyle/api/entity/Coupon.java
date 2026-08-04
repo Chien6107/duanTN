@@ -52,4 +52,18 @@ public class Coupon {
     @Column(name = "status", nullable = false)
     @Builder.Default
     private Byte status = 1; // 0 - Vô hiệu hóa, 1 - Kích hoạt
+
+    @Column(name = "category_id")
+    private Integer categoryId;
+
+    @Column(name = "applicable_user_type", nullable = false, columnDefinition = "TINYINT DEFAULT 0")
+    @Builder.Default
+    private Byte applicableUserType = 0; // 0 - Tất cả, 1 - Thành viên mới, 2 - Thành viên cũ
+
+    @Column(name = "applicable_scope", nullable = false, columnDefinition = "TINYINT DEFAULT 0")
+    @Builder.Default
+    private Byte applicableScope = 0; // 0 - Tất cả sản phẩm, 1 - Theo danh mục, 2 - Sản phẩm chọn lọc
+
+    @Column(name = "applicable_product_ids", length = 1000)
+    private String applicableProductIds;
 }

@@ -44,6 +44,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse createUser(UserRequest request) {
         validateUniqueUsernameAndEmail(request, null);
+        if (StringUtils.hasText(request.getCitizenId()) && userRepository.existsByCitizenId(request.getCitizenId())) {
+            throw new BadRequestException("Căn cước công dân đã được sử dụng");
+        }
         if (!StringUtils.hasText(request.getPassword())) {
             throw new BadRequestException("Mật khẩu không được để trống khi tạo tài khoản mới");
         }
@@ -54,6 +57,8 @@ public class UserServiceImpl implements UserService {
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
+                .citizenId(request.getCitizenId())
+                .address(request.getAddress())
                 .role(findRoleById(request.getRoleId()))
                 .status(request.getStatus() != null ? request.getStatus() : (byte) 1)
                 .build();
@@ -70,9 +75,14 @@ public class UserServiceImpl implements UserService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
+        user.setCitizenId(request.getCitizenId());
+        user.setAddress(request.getAddress());
         user.setRole(findRoleById(request.getRoleId()));
         if (request.getStatus() != null) {
             user.setStatus(request.getStatus());
+            if (request.getStatus() == 1) {
+                user.setFailedLoginAttempts(0);
+            }
         }
         if (StringUtils.hasText(request.getPassword())) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -83,12 +93,33 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    public void resetStaffPassword(Integer userId, String citizenId, String newPassword) {
+        User user = findUserById(userId);
+        if (!user.getRole().getRoleName().toUpperCase().endsWith("STAFF")) {
+            throw new BadRequestException("Chỉ được reset mật khẩu cho tài khoản nhân viên");
+        }
+        if (!StringUtils.hasText(user.getCitizenId()) || !user.getCitizenId().equals(citizenId)) {
+            throw new BadRequestException("Căn cước công dân không khớp với hồ sơ nhân viên");
+        }
+        if (!com.foxstyle.api.util.PasswordPolicy.isValid(newPassword)) {
+            throw new BadRequestException(com.foxstyle.api.util.PasswordPolicy.MESSAGE);
+        }
+        user.setPassword(passwordEncoder.encode(newPassword.trim()));
+        user.setFailedLoginAttempts(0);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
     public UserResponse changeUserStatus(Integer userId, Byte status) {
         if (status == null || (status != 0 && status != 1)) {
             throw new BadRequestException("Trạng thái tài khoản chỉ nhận giá trị 0 (khóa) hoặc 1 (hoạt động)");
         }
         User user = findUserById(userId);
         user.setStatus(status);
+        if (status == 1) {
+            user.setFailedLoginAttempts(0);
+        }
         return convertToResponse(userRepository.save(user));
     }
 
@@ -131,6 +162,7 @@ public class UserServiceImpl implements UserService {
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .address(user.getAddress())
                 .status(user.getStatus())
                 .roleName(user.getRole().getRoleName())
                 .build();

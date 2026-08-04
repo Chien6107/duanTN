@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+    boolean existsByPhone(String phone);
+    boolean existsByCitizenId(String citizenId);
     Page<User> findByFullNameContainingIgnoreCaseOrUsernameContainingIgnoreCase(
             String fullName, String username, Pageable pageable);
 }

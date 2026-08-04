@@ -13,6 +13,7 @@ public class UserRequest {
     private String username;
 
     // Cho phép null khi cập nhật (giữ mật khẩu cũ)
+    @Pattern(regexp = com.foxstyle.api.util.PasswordPolicy.REGEX, message = com.foxstyle.api.util.PasswordPolicy.MESSAGE)
     private String password;
 
     @NotBlank(message = "Họ và tên không được để trống")
@@ -22,7 +23,14 @@ public class UserRequest {
     @Email(message = "Email không đúng định dạng")
     private String email;
 
+    @Pattern(regexp = com.foxstyle.api.util.PhonePolicy.OPTIONAL_REGEX, message = com.foxstyle.api.util.PhonePolicy.MESSAGE)
     private String phone;
+
+    @Pattern(regexp = "^$|^[0-9]{12}$", message = "Căn cước công dân phải gồm đúng 12 chữ số")
+    private String citizenId;
+
+    @Size(max = 500, message = "Địa chỉ không được vượt quá 500 ký tự")
+    private String address;
 
     @NotNull(message = "Role không được để trống")
     private Integer roleId;

@@ -15,6 +15,8 @@ public interface UserService {
 
     UserResponse updateUser(Integer userId, UserRequest request);
 
+    void resetStaffPassword(Integer userId, String citizenId, String newPassword);
+
     /** Khóa / mở khóa tài khoản (status 0/1). */
     UserResponse changeUserStatus(Integer userId, Byte status);
 

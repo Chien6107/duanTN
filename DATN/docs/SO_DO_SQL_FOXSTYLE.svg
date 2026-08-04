@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1500" viewBox="0 0 2400 1500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff7ed"/><stop offset="1" stop-color="#f8fafc"/></linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="5" stdDeviation="7" flood-opacity=".14"/></filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+    <style>
+      .title{font:800 44px Arial;fill:#111827}.sub{font:500 20px Arial;fill:#64748b}
+      .group{fill:#fff;stroke:#e2e8f0;stroke-width:2;rx:24;filter:url(#shadow)}
+      .gh{font:800 25px Arial;fill:#fff}.box{fill:#fff;stroke-width:2;rx:13}
+      .bn{font:800 19px Arial;fill:#111827}.field{font:15px Consolas,monospace;fill:#475569}
+      .rel{fill:none;stroke:#64748b;stroke-width:2.3;marker-end:url(#arrow)}
+      .note{font:600 16px Arial;fill:#475569}.pk{fill:#ea580c}.fk{fill:#2563eb}
+    </style>
+  </defs>
+  <rect width="2400" height="1500" fill="url(#bg)"/>
+  <text x="80" y="72" class="title">SƠ ĐỒ CƠ SỞ DỮ LIỆU SQL — FOXSTYLE</text>
+  <text x="82" y="108" class="sub">SQL Server • PK: khóa chính • FK: khóa ngoại • Quan hệ chính của hệ thống</text>
+
+  <!-- Groups -->
+  <rect x="55" y="145" width="560" height="590" class="group"/><rect x="55" y="145" width="560" height="55" rx="24" fill="#0f172a"/>
+  <text x="82" y="181" class="gh">TÀI KHOẢN &amp; KHÁCH HÀNG</text>
+  <rect x="640" y="145" width="720" height="590" class="group"/><rect x="640" y="145" width="720" height="55" rx="24" fill="#ea580c"/>
+  <text x="670" y="181" class="gh">SẢN PHẨM • THƯƠNG HIỆU • KHO</text>
+  <rect x="1385" y="145" width="960" height="590" class="group"/><rect x="1385" y="145" width="960" height="55" rx="24" fill="#047857"/>
+  <text x="1415" y="181" class="gh">ĐƠN HÀNG • THANH TOÁN • BẢO HÀNH</text>
+  <rect x="55" y="770" width="1090" height="600" class="group"/><rect x="55" y="770" width="1090" height="55" rx="24" fill="#7c3aed"/>
+  <text x="82" y="806" class="gh">BÀI VIẾT • ĐÁNH GIÁ • CHĂM SÓC</text>
+  <rect x="1170" y="770" width="1175" height="600" class="group"/><rect x="1170" y="770" width="1175" height="55" rx="24" fill="#0369a1"/>
+  <text x="1200" y="806" class="gh">KHUYẾN MÃI • QUẢN TRỊ MỞ RỘNG</text>
+
+  <!-- reusable boxes manually -->
+  <g><rect x="85" y="225" width="215" height="120" class="box" stroke="#0f172a"/><text x="105" y="255" class="bn">ROLES</text><text x="105" y="283" class="field pk">PK role_id</text><text x="105" y="307" class="field">role_name (UK)</text></g>
+  <g><rect x="350" y="225" width="230" height="180" class="box" stroke="#0f172a"/><text x="370" y="255" class="bn">USERS</text><text x="370" y="283" class="field pk">PK user_id</text><text x="370" y="307" class="field fk">FK role_id</text><text x="370" y="331" class="field">username, email</text><text x="370" y="355" class="field">phone, full_name</text><text x="370" y="379" class="field">total_spending</text></g>
+  <g><rect x="85" y="455" width="215" height="130" class="box" stroke="#0f172a"/><text x="105" y="485" class="bn">USER_ADDRESSES</text><text x="105" y="513" class="field pk">PK address_id</text><text x="105" y="537" class="field fk">FK user_id</text><text x="105" y="561" class="field">full_address</text></g>
+  <g><rect x="350" y="455" width="230" height="115" class="box" stroke="#0f172a"/><text x="370" y="485" class="bn">CARTS</text><text x="370" y="513" class="field pk">PK cart_id</text><text x="370" y="537" class="field fk">FK user_id (UK)</text></g>
+  <g><rect x="350" y="600" width="230" height="110" class="box" stroke="#0f172a"/><text x="370" y="630" class="bn">CART_DETAILS</text><text x="370" y="658" class="field pk">PK cart_detail_id</text><text x="370" y="682" class="field fk">FK cart_id, variant_id</text></g>
+
+  <g><rect x="675" y="225" width="200" height="130" class="box" stroke="#ea580c"/><text x="695" y="255" class="bn">BRANDS</text><text x="695" y="283" class="field pk">PK brand_id</text><text x="695" y="307" class="field">brand_name, slug</text><text x="695" y="331" class="field">status</text></g>
+  <g><rect x="905" y="225" width="200" height="130" class="box" stroke="#ea580c"/><text x="925" y="255" class="bn">CATEGORIES</text><text x="925" y="283" class="field pk">PK category_id</text><text x="925" y="307" class="field">category_name</text></g>
+  <g><rect x="1135" y="225" width="195" height="180" class="box" stroke="#ea580c"/><text x="1155" y="255" class="bn">PRODUCTS</text><text x="1155" y="283" class="field pk">PK product_id</text><text x="1155" y="307" class="field fk">FK brand_id</text><text x="1155" y="331" class="field fk">FK category_id</text><text x="1155" y="355" class="field">price, is_combo</text><text x="1155" y="379" class="field">status</text></g>
+  <g><rect x="675" y="455" width="230" height="150" class="box" stroke="#ea580c"/><text x="695" y="485" class="bn">PRODUCT_VARIANTS</text><text x="695" y="513" class="field pk">PK variant_id</text><text x="695" y="537" class="field fk">FK product_id</text><text x="695" y="561" class="field">color, size, quantity</text><text x="695" y="585" class="field">price, cost_price</text></g>
+  <g><rect x="935" y="455" width="200" height="125" class="box" stroke="#ea580c"/><text x="955" y="485" class="bn">PRODUCT_IMAGES</text><text x="955" y="513" class="field pk">PK image_id</text><text x="955" y="537" class="field fk">FK product_id</text><text x="955" y="561" class="field">image_url</text></g>
+  <g><rect x="1160" y="455" width="170" height="150" class="box" stroke="#ea580c"/><text x="1180" y="485" class="bn">COMBO_ITEMS</text><text x="1180" y="513" class="field pk">PK combo_item_id</text><text x="1180" y="537" class="field fk">FK combo_product</text><text x="1180" y="561" class="field fk">FK component</text><text x="1180" y="585" class="field">quantity, is_gift</text></g>
+  <g><rect x="675" y="630" width="305" height="80" class="box" stroke="#ea580c"/><text x="695" y="660" class="bn">STOCK_IMPORT_RECEIPTS</text><text x="695" y="688" class="field pk">PK receipt_id • receipt_code</text></g>
+  <g><rect x="1010" y="630" width="320" height="80" class="box" stroke="#ea580c"/><text x="1030" y="660" class="bn">STOCK_IMPORTS</text><text x="1030" y="688" class="field fk">FK receipt_id • FK variant_id</text></g>
+
+  <g><rect x="1415" y="225" width="235" height="185" class="box" stroke="#047857"/><text x="1435" y="255" class="bn">ORDERS</text><text x="1435" y="283" class="field pk">PK order_id</text><text x="1435" y="307" class="field fk">FK user_id, coupon_id</text><text x="1435" y="331" class="field">total_amount</text><text x="1435" y="355" class="field">shipping_fee, tax</text><text x="1435" y="379" class="field">status, reasons</text></g>
+  <g><rect x="1690" y="225" width="245" height="155" class="box" stroke="#047857"/><text x="1710" y="255" class="bn">ORDER_DETAILS</text><text x="1710" y="283" class="field pk">PK order_detail_id</text><text x="1710" y="307" class="field fk">FK order_id, variant_id</text><text x="1710" y="331" class="field">quantity, price</text><text x="1710" y="355" class="field">cost_price</text></g>
+  <g><rect x="1975" y="225" width="235" height="180" class="box" stroke="#047857"/><text x="1995" y="255" class="bn">PAYMENTS</text><text x="1995" y="283" class="field pk">PK payment_id</text><text x="1995" y="307" class="field fk">FK order_id</text><text x="1995" y="331" class="field">payment_method</text><text x="1995" y="355" class="field">payment_status</text><text x="1995" y="379" class="field">amount, transaction_id</text></g>
+  <g><rect x="1975" y="455" width="335" height="145" class="box" stroke="#047857"/><text x="1995" y="485" class="bn">PAYMENT_RECONCILIATIONS</text><text x="1995" y="513" class="field pk">PK reconciliation_id</text><text x="1995" y="537" class="field fk">FK payment_id (UK)</text><text x="1995" y="561" class="field fk">FK reconciled_by</text><text x="1995" y="585" class="field">reconciliation_code</text></g>
+  <g><rect x="1415" y="465" width="300" height="145" class="box" stroke="#047857"/><text x="1435" y="495" class="bn">WARRANTY_CLAIMS</text><text x="1435" y="523" class="field pk">PK claim_id</text><text x="1435" y="547" class="field fk">FK order_detail_id</text><text x="1435" y="571" class="field fk">FK user_id, handled_by</text><text x="1435" y="595" class="field">reason, status</text></g>
+  <g><rect x="1750" y="465" width="185" height="125" class="box" stroke="#047857"/><text x="1770" y="495" class="bn">WARRANTY</text><text x="1770" y="519" class="bn">POLICIES</text><text x="1770" y="547" class="field pk">PK policy_id</text><text x="1770" y="571" class="field fk">FK category_id</text></g>
+
+  <g><rect x="85" y="855" width="230" height="135" class="box" stroke="#7c3aed"/><text x="105" y="885" class="bn">ARTICLE_TOPICS</text><text x="105" y="913" class="field pk">PK topic_id</text><text x="105" y="937" class="field">topic_name, slug</text><text x="105" y="961" class="field">status</text></g>
+  <g><rect x="355" y="855" width="230" height="180" class="box" stroke="#7c3aed"/><text x="375" y="885" class="bn">ARTICLES</text><text x="375" y="913" class="field pk">PK article_id</text><text x="375" y="937" class="field fk">FK topic_id, author_id</text><text x="375" y="961" class="field">title, slug, content</text><text x="375" y="985" class="field">status, published_at</text></g>
+  <g><rect x="625" y="855" width="230" height="125" class="box" stroke="#7c3aed"/><text x="645" y="885" class="bn">ARTICLE_PRODUCTS</text><text x="645" y="913" class="field fk">PK/FK article_id</text><text x="645" y="937" class="field fk">PK/FK product_id</text></g>
+  <g><rect x="895" y="855" width="215" height="155" class="box" stroke="#7c3aed"/><text x="915" y="885" class="bn">REVIEWS</text><text x="915" y="913" class="field pk">PK review_id</text><text x="915" y="937" class="field fk">FK user/product/order</text><text x="915" y="961" class="field">rating, comment</text><text x="915" y="985" class="field">status</text></g>
+  <g><rect x="85" y="1080" width="260" height="140" class="box" stroke="#7c3aed"/><text x="105" y="1110" class="bn">NOTIFICATIONS</text><text x="105" y="1138" class="field pk">PK notification_id</text><text x="105" y="1162" class="field fk">FK user_id, created_by</text><text x="105" y="1186" class="field">title, is_read</text></g>
+  <g><rect x="390" y="1080" width="230" height="140" class="box" stroke="#7c3aed"/><text x="410" y="1110" class="bn">CHAT_MESSAGES</text><text x="410" y="1138" class="field pk">PK message_id</text><text x="410" y="1162" class="field">sender, content</text><text x="410" y="1186" class="field">is_read</text></g>
+  <g><rect x="665" y="1080" width="240" height="140" class="box" stroke="#7c3aed"/><text x="685" y="1110" class="bn">CONTACT_MESSAGES</text><text x="685" y="1138" class="field pk">PK contact_id</text><text x="685" y="1162" class="field fk">FK user, assigned_to</text><text x="685" y="1186" class="field">subject, status</text></g>
+
+  <g><rect x="1200" y="855" width="230" height="160" class="box" stroke="#0369a1"/><text x="1220" y="885" class="bn">COUPONS</text><text x="1220" y="913" class="field pk">PK coupon_id</text><text x="1220" y="937" class="field">coupon_code (UK)</text><text x="1220" y="961" class="field">discount_value</text><text x="1220" y="985" class="field">usage_limit</text></g>
+  <g><rect x="1470" y="855" width="230" height="140" class="box" stroke="#0369a1"/><text x="1490" y="885" class="bn">USER_COUPONS</text><text x="1490" y="913" class="field fk">PK/FK user_id</text><text x="1490" y="937" class="field fk">PK/FK coupon_id</text><text x="1490" y="961" class="field fk">FK order_id</text></g>
+  <g><rect x="1740" y="855" width="230" height="140" class="box" stroke="#0369a1"/><text x="1760" y="885" class="bn">BANNERS</text><text x="1760" y="913" class="field pk">PK banner_id</text><text x="1760" y="937" class="field">title, image_url</text><text x="1760" y="961" class="field">status, display_order</text></g>
+  <g><rect x="2010" y="855" width="300" height="165" class="box" stroke="#0369a1"/><text x="2030" y="885" class="bn">ADMIN_MODULE_RECORDS</text><text x="2030" y="913" class="field pk">PK record_id</text><text x="2030" y="937" class="field">module_name</text><text x="2030" y="961" class="field">payload (NVARCHAR MAX)</text><text x="2030" y="985" class="field">created_at, updated_at</text></g>
+  <g><rect x="1200" y="1080" width="230" height="130" class="box" stroke="#0369a1"/><text x="1220" y="1110" class="bn">SETTINGS</text><text x="1220" y="1138" class="field pk">PK setting_id</text><text x="1220" y="1162" class="field">setting_key, value</text><text x="1220" y="1186" class="field fk">FK updated_by</text></g>
+  <g><rect x="1470" y="1080" width="230" height="130" class="box" stroke="#0369a1"/><text x="1490" y="1110" class="bn">FLASH_SALES</text><text x="1490" y="1138" class="field pk">PK flash_sale_id</text><text x="1490" y="1162" class="field">start_at, end_at</text></g>
+  <g><rect x="1740" y="1080" width="250" height="130" class="box" stroke="#0369a1"/><text x="1760" y="1110" class="bn">FLASH_SALE_PRODUCTS</text><text x="1760" y="1138" class="field fk">FK flash_sale_id</text><text x="1760" y="1162" class="field fk">FK product_id</text><text x="1760" y="1186" class="field">sale_price</text></g>
+
+  <!-- relationship arrows -->
+  <path d="M300 285 H350" class="rel"/><path d="M465 405 L235 455" class="rel"/><path d="M465 405 V455" class="rel"/><path d="M465 570 V600" class="rel"/>
+  <path d="M875 290 H1135" class="rel"/><path d="M1105 290 H1135" class="rel"/><path d="M1230 405 L790 455" class="rel"/><path d="M1230 405 L1035 455" class="rel"/><path d="M1230 405 L1245 455" class="rel"/><path d="M980 670 H1010" class="rel"/>
+  <path d="M1650 315 H1690" class="rel"/><path d="M1935 305 H1975" class="rel"/><path d="M2092 405 V455" class="rel"/><path d="M1810 380 L1565 465" class="rel"/><path d="M1750 528 H1715" class="rel"/>
+  <path d="M315 920 H355" class="rel"/><path d="M585 920 H625" class="rel"/><path d="M855 920 H895" class="rel"/><path d="M1430 925 H1470" class="rel"/><path d="M1700 925 H1740" class="rel"/><path d="M1700 1145 H1740" class="rel"/>
+  <!-- cross-domain relationships -->
+  <path d="M580 320 C900 90 1280 90 1480 225" class="rel"/><path d="M905 530 C1190 740 1510 400 1690 320" class="rel"/>
+  <path d="M1330 315 C1480 120 1740 110 1810 225" class="rel"/><path d="M855 920 C1120 820 1220 500 1230 405" class="rel"/>
+  <path d="M580 330 C1040 760 1500 780 1990 455" class="rel"/>
+
+  <rect x="80" y="1405" width="2240" height="58" rx="16" fill="#0f172a"/>
+  <circle cx="115" cy="1434" r="8" class="pk"/><text x="135" y="1441" class="gh" style="font-size:18px">PK</text>
+  <circle cx="220" cy="1434" r="8" class="fk"/><text x="240" y="1441" class="gh" style="font-size:18px">FK</text>
+  <text x="340" y="1441" class="gh" style="font-size:18px">Nguồn: foxstyle_db.sql + Backend Entities • Cập nhật: 03/08/2026</text>
+</svg>

@@ -17,4 +17,8 @@ public class PaymentResponse {
     private String transactionId;
     private LocalDateTime paymentDate;
     private BigDecimal amount;
+    private Boolean reconciled;
+    private String reconciliationCode;
+    private LocalDateTime reconciledAt;
+    private String reconciledBy;
 }
