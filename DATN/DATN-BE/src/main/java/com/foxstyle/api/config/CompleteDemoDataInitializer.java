@@ -21,6 +21,7 @@ import java.util.Locale;
 @org.springframework.core.annotation.Order(100)
 @ConditionalOnProperty(name = "app.seed-demo-data", havingValue = "true")
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CompleteDemoDataInitializer implements ApplicationRunner {
     private final UserRepository users;
     private final ProductRepository products;

@@ -178,7 +178,7 @@ public class AuthController {
     @PostMapping("/forgot-password/send-otp")
     public ResponseEntity<ApiResponse<String>> sendForgotPasswordOtp(@Valid @RequestBody com.foxstyle.api.dto.request.ForgotPasswordSendOtpRequest request) {
 
-        String otpCode = otpService.sendForgotPasswordOtp(request.getEmail());
+        otpService.sendForgotPasswordOtp(request.getEmail());
         ApiResponse<String> response = ApiResponse.<String>builder()
                 .status("success")
                 .message("Mã OTP khôi phục mật khẩu đã được gửi đến email của bạn")

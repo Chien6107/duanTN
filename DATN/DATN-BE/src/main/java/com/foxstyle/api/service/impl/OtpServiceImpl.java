@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class OtpServiceImpl implements OtpService {
 
     private final OtpVerificationRepository otpRepository;

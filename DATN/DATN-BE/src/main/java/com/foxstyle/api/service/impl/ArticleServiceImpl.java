@@ -23,6 +23,7 @@ import java.util.Locale;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings("null")
 public class ArticleServiceImpl implements ArticleService {
     private final ArticleRepository articleRepository;
     private final ArticleTopicRepository topicRepository;

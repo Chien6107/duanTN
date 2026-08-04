@@ -47,6 +47,7 @@ public class ChatController {
     }
 
     @PostMapping
+    @SuppressWarnings("null")
     public ResponseEntity<ApiResponse<ChatMessageResponse>> send(
             @Valid @RequestBody ChatMessageRequest request,
             Principal principal,
