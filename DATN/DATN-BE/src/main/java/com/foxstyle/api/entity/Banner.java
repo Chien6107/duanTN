@@ -35,7 +35,7 @@ public class Banner {
     @Builder.Default
     private Integer position = 1;
 
-    @Column(name = "display_order", nullable = false)
+    @Column(name = "display_order", columnDefinition = "INT NOT NULL DEFAULT 1")
     @Builder.Default
     private Integer displayOrder = 1;
 

@@ -32,7 +32,7 @@ public class Setting {
     @JoinColumn(name = "updated_by")
     private User updatedBy;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", columnDefinition = "DATETIME2 NOT NULL DEFAULT SYSDATETIME()")
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }

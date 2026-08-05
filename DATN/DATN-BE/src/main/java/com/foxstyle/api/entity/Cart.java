@@ -24,7 +24,7 @@ public class Cart {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", columnDefinition = "DATETIME2 NOT NULL DEFAULT SYSDATETIME()")
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
