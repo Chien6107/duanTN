@@ -268,23 +268,24 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public boolean handlePayOSWebhook(ObjectNode webhookBody) {
+        if (!isValidWebhookSignature(webhookBody)) {
+            System.err.println("[PayOS Webhook] Chữ ký không hợp lệ");
+            return false;
+        }
+        // Chữ ký hợp lệ nghĩa là request đến từ PayOS (kể cả webhook test lúc cấu hình,
+        // vốn gửi orderCode mẫu không tồn tại trong hệ thống) nên luôn xác nhận đã nhận.
         try {
-            if (!isValidWebhookSignature(webhookBody)) {
-                System.err.println("[PayOS Webhook] Chữ ký không hợp lệ");
-                return false;
-            }
             if (webhookBody.path("success").asBoolean(false) && webhookBody.has("data")) {
                 JsonNode data = webhookBody.get("data");
                 if (data.has("orderCode")) {
                     Long orderCode = data.get("orderCode").asLong();
                     checkAndSyncPayOSStatus(orderCode);
-                    return true;
                 }
             }
         } catch (Exception e) {
-            System.err.println("[PayOS Webhook Exception] " + e.getMessage());
+            System.err.println("[PayOS Webhook] Không đồng bộ được đơn hàng: " + e.getMessage());
         }
-        return false;
+        return true;
     }
 
     private boolean isValidWebhookSignature(ObjectNode webhookBody) {
