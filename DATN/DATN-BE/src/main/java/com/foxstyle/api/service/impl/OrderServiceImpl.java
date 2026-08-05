@@ -51,14 +51,24 @@ public class OrderServiceImpl implements OrderService {
         Page<Order> page = status != null
                 ? orderRepository.findByStatus(status, pageable)
                 : orderRepository.findAll(pageable);
-        return PageResponse.of(page.map(this::convertToResponse));
+        java.util.Map<Integer, List<Payment>> paymentsByOrder = paymentsByOrderId(page.getContent());
+        return PageResponse.of(page.map(order -> convertToResponse(order, paymentsByOrder.get(order.getOrderId()))));
     }
 
     @Override
     public PageResponse<OrderResponse> getMyOrders(String username, Pageable pageable) {
         User user = findUserByUsername(username);
-        return PageResponse.of(orderRepository.findByUserUserId(user.getUserId(), pageable)
-                .map(this::convertToResponse));
+        Page<Order> page = orderRepository.findByUserUserId(user.getUserId(), pageable);
+        java.util.Map<Integer, List<Payment>> paymentsByOrder = paymentsByOrderId(page.getContent());
+        return PageResponse.of(page.map(order -> convertToResponse(order, paymentsByOrder.get(order.getOrderId()))));
+    }
+
+    /** Batch-loads payments for a page of orders instead of one query per order. */
+    private java.util.Map<Integer, List<Payment>> paymentsByOrderId(List<Order> orders) {
+        List<Integer> orderIds = orders.stream().map(Order::getOrderId).toList();
+        if (orderIds.isEmpty()) return java.util.Map.of();
+        return paymentRepository.findByOrderOrderIdIn(orderIds).stream()
+                .collect(java.util.stream.Collectors.groupingBy(payment -> payment.getOrder().getOrderId()));
     }
 
     @Override
@@ -558,11 +568,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderResponse convertToResponse(Order order) {
+        return convertToResponse(order, paymentRepository.findByOrderOrderId(order.getOrderId()));
+    }
+
+    private OrderResponse convertToResponse(Order order, List<Payment> orderPayments) {
         List<OrderDetailResponse> details = order.getOrderDetails() != null
                 ? order.getOrderDetails().stream().map(this::convertDetail).toList()
                 : List.of();
 
-        List<PaymentResponse> payments = paymentRepository.findByOrderOrderId(order.getOrderId())
+        List<PaymentResponse> payments = (orderPayments == null ? List.<Payment>of() : orderPayments)
                 .stream()
                 .map(this::convertPayment)
                 .toList();

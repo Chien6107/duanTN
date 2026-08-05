@@ -3,6 +3,7 @@ package com.foxstyle.api.config;
 import com.foxstyle.api.entity.*;
 import com.foxstyle.api.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,6 +36,10 @@ public class DataInitializer implements CommandLineRunner {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.demo.admin-password}") private String demoAdminPassword;
+    @Value("${app.demo.staff-password}") private String demoStaffPassword;
+    @Value("${app.demo.customer-password}") private String demoCustomerPassword;
 
     @Override
     public void run(String... args) throws Exception {
@@ -82,9 +87,9 @@ public class DataInitializer implements CommandLineRunner {
                         .description("Khách hàng mua sắm trực tuyến")
                         .build()));
 
-        String adminHashedPassword = passwordEncoder.encode("Admin123@");
-        String staffHashedPassword = passwordEncoder.encode("Staff123@");
-        String customerHashedPassword = passwordEncoder.encode("Chien123@");
+        String adminHashedPassword = passwordEncoder.encode(demoAdminPassword);
+        String staffHashedPassword = passwordEncoder.encode(demoStaffPassword);
+        String customerHashedPassword = passwordEncoder.encode(demoCustomerPassword);
 
         // 2. Khởi tạo/Cập nhật Tài khoản Quản trị (Admin)
         User adminUser = userRepository.findByUsername("admin")

@@ -2,6 +2,7 @@ package com.foxstyle.api.config;
 
 import com.foxstyle.api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,13 +21,17 @@ public class DemoAccountPasswordInitializer implements ApplicationRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${app.demo.admin-password}") private String adminPassword;
+    @Value("${app.demo.staff-password}") private String staffPassword;
+    @Value("${app.demo.customer-password}") private String customerPassword;
+
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        updatePassword("admin", "Admin123@");
-        updatePassword("staff", "Staff123@");
+        updatePassword("admin", adminPassword);
+        updatePassword("staff", staffPassword);
         IntStream.rangeClosed(1, 10)
-                .forEach(index -> updatePassword("customer" + index, "Chien123@"));
+                .forEach(index -> updatePassword("customer" + index, customerPassword));
     }
 
     private void updatePassword(String username, String rawPassword) {

@@ -3,11 +3,14 @@ package com.foxstyle.api.controller;
 import com.foxstyle.api.dto.request.ChatMessageRequest;
 import com.foxstyle.api.dto.response.ApiResponse;
 import com.foxstyle.api.dto.response.ChatMessageResponse;
+import com.foxstyle.api.dto.response.PageResponse;
 import com.foxstyle.api.entity.ChatMessage;
 import com.foxstyle.api.repository.ChatMessageRepository;
 import com.foxstyle.api.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,8 +29,9 @@ public class ChatController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
-    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getAll() {
-        return ResponseEntity.ok(response(repository.findAllByOrderBySentAtAsc()));
+    public ResponseEntity<ApiResponse<PageResponse<ChatMessageResponse>>> getAll(Pageable pageable) {
+        Page<ChatMessageResponse> page = repository.findAllByOrderBySentAtDesc(pageable).map(this::toResponse);
+        return ResponseEntity.ok(ApiResponse.success("Lấy tin nhắn thành công", PageResponse.of(page)));
     }
 
     @GetMapping("/channel/{channelId}")
