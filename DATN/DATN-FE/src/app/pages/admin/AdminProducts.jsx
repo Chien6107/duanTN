@@ -56,7 +56,7 @@ export function AdminProducts() {
   const [receiptForm, setReceiptForm] = useState({
     supplierName: "", supplierPhone: "", note: "",
     discountAmount: "", taxRate: "", shippingFee: "", otherFee: "",
-    items: [{ variantId: "", quantity: 1, unitCost: "" }]
+    items: [{ _rowId: crypto.randomUUID(), variantId: "", quantity: 1, unitCost: "" }]
   });
 
   const allVariants = products.flatMap((product) =>
@@ -131,7 +131,7 @@ export function AdminProducts() {
       ).join("\n");
       alert(`Đã tạo phiếu ${response.data.receiptCode}\nTổng tiền: ${Number(response.data.totalAmount).toLocaleString("vi-VN")}đ\n\n${stockSummary}\n\nFile phiếu nhập đã được xuất.`);
       setShowReceiptModal(false);
-      setReceiptForm({ supplierName: "", supplierPhone: "", note: "", discountAmount:"", taxRate:"", shippingFee:"", otherFee:"", items: [{ variantId: "", quantity: 1, unitCost: "" }] });
+      setReceiptForm({ supplierName: "", supplierPhone: "", note: "", discountAmount:"", taxRate:"", shippingFee:"", otherFee:"", items: [{ _rowId: crypto.randomUUID(), variantId: "", quantity: 1, unitCost: "" }] });
       await loadUserData();
     } catch (error) {
       alert(error.message || "Không thể tạo phiếu nhập kho.");
@@ -1778,7 +1778,7 @@ export function AdminProducts() {
               </div>
               <div className="space-y-3">
                 {receiptForm.items.map((item, index) => (
-                  <div key={index} className="grid gap-3 rounded-2xl bg-gray-50 p-4 md:grid-cols-[1fr_120px_170px_44px]">
+                  <div key={item._rowId} className="grid gap-3 rounded-2xl bg-gray-50 p-4 md:grid-cols-[1fr_120px_170px_44px]">
                     <select required value={item.variantId} onChange={(e) => {
                       const items=[...receiptForm.items]; items[index]={...item,variantId:e.target.value}; setReceiptForm({...receiptForm,items});
                     }} className="rounded-xl border p-3">
@@ -1796,7 +1796,7 @@ export function AdminProducts() {
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <button type="button" onClick={() => setReceiptForm({...receiptForm,items:[...receiptForm.items,{variantId:"",quantity:1,unitCost:""}]})} className="rounded-xl bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">+ Thêm dòng hàng</button>
+                <button type="button" onClick={() => setReceiptForm({...receiptForm,items:[...receiptForm.items,{_rowId: crypto.randomUUID(),variantId:"",quantity:1,unitCost:""}]})} className="rounded-xl bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700">+ Thêm dòng hàng</button>
                 <div className="text-right"><p className="text-xs text-gray-500">Tổng thanh toán phiếu nhập</p><p className="text-xl font-black text-emerald-600">{(()=>{const sub=receiptForm.items.reduce((sum,item)=>sum+Number(item.quantity||0)*Number(item.unitCost||0),0);const taxable=Math.max(0,sub-Number(receiptForm.discountAmount||0));return Math.round(taxable+taxable*Number(receiptForm.taxRate||0)/100+Number(receiptForm.shippingFee||0)+Number(receiptForm.otherFee||0)).toLocaleString("vi-VN")})()}đ</p></div>
               </div>
               <button type="submit" className="w-full rounded-xl bg-emerald-600 py-3 font-black text-white hover:bg-emerald-700">Lưu phiếu và nhập kho</button>

@@ -846,7 +846,9 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!currentUser) return;
     loadPersistentChats();
-    const intervalId = window.setInterval(loadPersistentChats, 4000);
+    const intervalId = window.setInterval(() => {
+      if (document.visibilityState === "visible") loadPersistentChats();
+    }, 10000);
     return () => window.clearInterval(intervalId);
   }, [currentUser, loadPersistentChats]);
 
@@ -1245,8 +1247,8 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (currentUser?.role !== "admin" && currentUser?.role !== "staff") return;
     const intervalId = window.setInterval(() => {
-      loadCatalogData();
-    }, 15000);
+      if (document.visibilityState === "visible") loadCatalogData();
+    }, 60000);
     return () => window.clearInterval(intervalId);
   }, [currentUser?.role, loadCatalogData]);
 

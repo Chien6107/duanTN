@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { Filter, SlidersHorizontal, Grid3X3, ArrowUpDown, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
@@ -158,7 +158,8 @@ export function ProductsPage() {
   };
 
   // Filter products for customer catalog
-  let filtered = products.filter((prod) => {
+  const filtered = useMemo(() => {
+  const result = products.filter((prod) => {
     if (searchQuery.trim()) {
       const q = normalizeSearchText(searchQuery);
       const matchName = normalizeSearchText(prod.name).includes(q);
@@ -258,14 +259,17 @@ export function ProductsPage() {
 
   // Sort products
   if (sortBy === "default" || !sortBy) {
-    filtered.sort((a, b) => b.id - a.id);
+    result.sort((a, b) => b.id - a.id);
   } else if (sortBy === "price-asc") {
-    filtered.sort((a, b) => a.price - b.price);
+    result.sort((a, b) => a.price - b.price);
   } else if (sortBy === "price-desc") {
-    filtered.sort((a, b) => b.price - a.price);
+    result.sort((a, b) => b.price - a.price);
   } else if (sortBy === "rating-desc") {
-    filtered.sort((a, b) => b.rating - a.rating);
+    result.sort((a, b) => b.rating - a.rating);
   }
+
+  return result;
+  }, [products, searchQuery, brandFilter, maxPriceValue, categoryFilter, categories, priceFilter, selectedColors, selectedSizes, saleOnly, sortBy]);
 
   // Reset page when filtering
   useEffect(() => {

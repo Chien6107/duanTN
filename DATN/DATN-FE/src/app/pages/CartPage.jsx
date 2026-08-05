@@ -134,7 +134,7 @@ export function CartPage() {
                 <div className="space-y-4">
                   {cart.map((item, index) => (
                     <div
-                      key={index}
+                      key={`${item.product.id}-${item.color}-${item.size}`}
                       className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 md:p-6 flex gap-4 items-center animate-in fade-in duration-200"
                     >
                       <img
@@ -278,7 +278,7 @@ export function CartPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {savedItems.map((sItem, sIdx) => (
-                      <div key={sIdx} className="bg-gray-50 border border-gray-200/60 rounded-2xl p-3 flex gap-3 items-center">
+                      <div key={`${sItem.product.id}-${sItem.color}-${sItem.size}`} className="bg-gray-50 border border-gray-200/60 rounded-2xl p-3 flex gap-3 items-center">
                         <img src={sItem.product.image} alt="" className="w-14 h-14 object-cover rounded-xl border border-gray-200" />
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-xs text-gray-900 truncate">{sItem.product.name}</p>

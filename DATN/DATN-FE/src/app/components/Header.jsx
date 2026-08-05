@@ -65,6 +65,7 @@ export function Header() {
 
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showImageSearchModal, setShowImageSearchModal] = useState(false);
 
@@ -435,6 +436,8 @@ export function Header() {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
+    setIsAuthSubmitting(true);
+    try {
 
     if (isRegisterMode) {
       if (!username || !password || !fullName || !email) {
@@ -490,6 +493,9 @@ export function Header() {
       // Khách hàng đăng nhập thành công sẽ giữ nguyên ở trang hiện tại
     } else {
       setErrorMsg(res.message);
+    }
+    } finally {
+      setIsAuthSubmitting(false);
     }
   };
 
@@ -1074,8 +1080,15 @@ export function Header() {
                       )}
                     </div>
 
-                    <button type="submit" className="flex h-12 w-full items-center justify-center bg-zinc-950 text-sm font-black uppercase tracking-[0.16em] text-white transition hover:bg-amber-300 hover:text-zinc-950">
-                      {isRegisterMode ? "Đăng ký" : "Đăng nhập"}
+                    <button
+                      type="submit"
+                      disabled={isAuthSubmitting}
+                      className="flex h-12 w-full items-center justify-center gap-2 bg-zinc-950 text-sm font-black uppercase tracking-[0.16em] text-white transition hover:bg-amber-300 hover:text-zinc-950 disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isAuthSubmitting && (
+                        <span className="h-4 w-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      )}
+                      {isAuthSubmitting ? "Đang xử lý..." : isRegisterMode ? "Đăng ký" : "Đăng nhập"}
                     </button>
                   </form>
 

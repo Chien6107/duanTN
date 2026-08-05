@@ -12,7 +12,7 @@ const categoryNames = {
   "phu-kien": "Phụ Kiện Thời Trang"
 };
 
-export function ProductCard({ product, wishlist = [], toggleWishlist }) {
+export const ProductCard = React.memo(function ProductCard({ product, wishlist = [], toggleWishlist }) {
   const isLiked = wishlist.some((wId) => String(wId) === String(product.id));
   const { originalPrice, discountPercent: discount, hasDiscount } = getProductPricing(product);
 
@@ -157,4 +157,4 @@ export function ProductCard({ product, wishlist = [], toggleWishlist }) {
       </div>
     </div>
   );
-}
+});
