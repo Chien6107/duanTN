@@ -40,7 +40,7 @@ public class Review {
     @Builder.Default
     private LocalDateTime reviewDate = LocalDateTime.now();
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", columnDefinition = "TINYINT NOT NULL DEFAULT 1")
     @Builder.Default
     private Byte status = 1;
 

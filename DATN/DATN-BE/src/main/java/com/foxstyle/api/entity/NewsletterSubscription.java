@@ -25,7 +25,7 @@ public class NewsletterSubscription {
     @Column(name = "subscribed_at", nullable = false)
     private LocalDateTime subscribedAt;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", columnDefinition = "TINYINT NOT NULL DEFAULT 1")
     @Builder.Default
     private Byte status = 1;
 

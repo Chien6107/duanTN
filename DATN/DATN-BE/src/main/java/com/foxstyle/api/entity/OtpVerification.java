@@ -31,7 +31,7 @@ public class OtpVerification {
     @Builder.Default
     private Boolean verified = false;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", columnDefinition = "DATETIME2 NOT NULL DEFAULT SYSDATETIME()")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
